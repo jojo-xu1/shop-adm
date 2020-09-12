@@ -1,0 +1,33 @@
+
+
+ネットスーパー
+[開発環境構築]
+１、NPMインストール
+
+２、VS　CODEインストール
+
+３、GIT HUBE環境
+　　https://github.com/jojo-xu1/shopping
+　　https://github.com/jojo-xu1/shop-adm
+
+    最新ソードのダウンロード
+    git clone https://github.com/jojo-xu1/shop-adm.git
+
+    最新を確認する
+　　git pull
+
+　　自分のブランチをチェックアウトする
+　　git checkout
+　　
+　　指定フォルダをCommit対象として宣言する。
+　　git add .
+
+　　***Commit対象ファイルがListup
+　　　　git status 
+
+    *** ユーザ情報の設定　***
+　　　 git config --global user.email "hly@netengine.co.jp"
+       git config --global user.name "Huang liyan"
+
+　　git commit -m "update"
+
