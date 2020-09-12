@@ -1,0 +1,92 @@
+
+DB操作用共通API:
+  http://13.112.112.160/comm/jsonsql
+  
+DB操作用Sample：
+
+
+DB操作用JSON
+１、レコード追加（Insert）
+  input用（Browser -> WebServer）
+  {
+    "mode":"insert",
+    "tablename":"xxx",
+    "autofield":"xxx",
+    "data":{
+        "field1":"xxx",
+        "field2":"xxx"
+    }
+  }
+  結果用（WebServer -> Browser）
+  {
+    "rscode":"ok",
+    "mode":"insert",    
+    "tablename":"xxx",
+    "autofield":"xxx",
+    "data":{
+        "[autofield]":"xxx",
+        "field1":"xxx",
+        "field2":"xxx"
+    }
+  }
+  
+2、更新（Update）
+  input用（Browser -> WebServer）
+  {
+    "mode":"update",
+    "tablename":"xxx",
+    "wheresql":"xxx",
+    "data":{
+        "field1":"xxx",
+        "field2":"xxx"
+    }
+  }
+  結果用（WebServer -> Browser）
+  {
+    "rscode":"ok",  
+    "mode":"update",
+    "tablename":"xxx",
+    "wheresql":"xxx",
+    "data":{
+        "field1":"xxx",
+        "field2":"xxx"
+    }
+  }
+
+3、削除（Delete）
+  input用（Browser -> WebServer）
+  {
+    "mode":"delete",
+    "tablename":"xxx",
+    "wheresql":"xxx"
+  }
+  結果用（WebServer -> Browser）
+  {
+    "rscode":"ok",  
+    "mode":"delete",
+    "tablename":"xxx",
+    "wheresql":"xxx"
+  }
+
+4、検索(Select)
+  input用（Browser -> WebServer）
+  {
+    "mode":"select",
+    "selectsql":"xxx"
+  }
+  結果用（WebServer -> Browser）
+  {
+    "rscode":"ok",  
+    "mode":"select",
+    "selectsql":"xxx",
+    "data":[
+        {
+        "field1":"xxx",
+        "field2":"xxx"
+        },
+        {
+        "field1":"xxx",
+        "field2":"xxx"
+        }
+    ]
+  }

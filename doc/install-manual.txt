@@ -17,11 +17,20 @@
 　　git pull
 
 　　自分のブランチをチェックアウトする
-　　git checkout
+　　git checkout yourbranch
 　　
 　　指定フォルダをCommit対象として宣言する。
 　　git add .
 
+
+    ローカルでCommitする
+　　git commit -m "update"
+
+　　クラウドへPushする
+    git push
+    
+
+    ****---- 参考要Command-----
 　　***Commit対象ファイルがListup
 　　　　git status 
 
@@ -31,6 +40,4 @@
 
     ***
        git branch
-
-　　git commit -m "update"
 
