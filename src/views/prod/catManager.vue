@@ -83,14 +83,6 @@ export default {
   components: { VueJsonToCsv, draggable },
   data() {
     return {
-
-      listData: [
-        { id: 1, name: '調味料、ビン類', children: [{ id: 5, name: '醤油類' }, { id: 6, name: '油' }] },
-        { id: 2, name: '野菜・くだもの', children: [{ id: 7, name: '根菜、芋類', children: [{ id: 8, name: '長根菜', parentid: 7 }] }] },
-        { id: 3, name: '肉類', children: [{ id: 9, name: '豚肉' }] },
-        { id: 4, name: '飲み物', children: [{ id: 10, name: '牛乳' }] },
-        { id: 4, name: '飲み物', children: [{ id: 10, name: '牛乳' }] }
-      ],
       listall: [
         { id: 1, name: '調味料、ビン類', parentid: 0 },
         { id: 2, name: '野菜・くだもの', parentid: 0 },
@@ -131,15 +123,22 @@ export default {
     },
     addCat() {
       var cat = {}
-      cat.id = '9'
-      cat.name = document.getElementById('new-todo').value
-      this.list.push(cat)
+      cat.parent_id = this.currentid
+      cat.cat_name = document.getElementById('new-todo').value
+      var data = {}
+      data.mode = 'insert'
+      data.tableName = 'ns_cat'
+      data.data = cat
+      this.$axios.post('http://127.0.0.1/test/web.do', data).then(function(resp) {
+        console.log(resp)
+      })
     },
     addNewTodo() {
     },
     setlist(parentid) {
       this.list = []
       this.currentname = ''
+      this.currentid = parentid
       for (var prop in this.listall) {
         if (parentid === this.listall[prop].id) { this.currentname = this.listall[prop].name }
         // { id: 1, name: '調味料、ビン類',parentid: 0 },
