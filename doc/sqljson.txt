@@ -1,0 +1,100 @@
+
+DB操作用共通API:
+  http://13.112.112.160/comm/jsonsql
+  
+vue.js側で、DB操作用Sample：
+  // axios, jquery, H5 fetchのどちらかでAjax通信実現する
+  //　直接JsonデータフォーマットでServer側とやり取りできないケースもある為
+  //　ns_ajaxを開発し、JSON転換やサーバー通信の役目を果たす。
+  ns_ajax( "http://13.112.112.160/comm/jsonsql", jsondata, callbackfunc );
+
+  function callbackfunc( rsjson ){
+    //rsjsonは以下の結果処理結果jsonデータ
+  };
+
+
+DB操作用JSON
+１、レコード追加（Insert）
+  input用（Browser -> WebServer）
+  {
+    "mode":"insert",
+    "tablename":"xxx",
+    "autofield":"xxx",
+    "data":{
+        "field1":"xxx",
+        "field2":"xxx"
+    }
+  }
+  結果用（WebServer -> Browser）
+  {
+    "rscode":"ok",
+    "mode":"insert",    
+    "tablename":"xxx",
+    "autofield":"xxx",
+    "data":{
+        "[autofield]":"xxx",
+        "field1":"xxx",
+        "field2":"xxx"
+    }
+  }
+  
+2、更新（Update）
+  input用（Browser -> WebServer）
+  {
+    "mode":"update",
+    "tablename":"xxx",
+    "wheresql":"xxx",
+    "data":{
+        "field1":"xxx",
+        "field2":"xxx"
+    }
+  }
+  結果用（WebServer -> Browser）
+  {
+    "rscode":"ok",  
+    "mode":"update",
+    "tablename":"xxx",
+    "wheresql":"xxx",
+    "data":{
+        "field1":"xxx",
+        "field2":"xxx"
+    }
+  }
+
+3、削除（Delete）
+  input用（Browser -> WebServer）
+  {
+    "mode":"delete",
+    "tablename":"xxx",
+    "wheresql":"xxx"
+  }
+  結果用（WebServer -> Browser）
+  {
+    "rscode":"ok",  
+    "mode":"delete",
+    "tablename":"xxx",
+    "wheresql":"xxx"
+  }
+
+4、検索(Select)
+  input用（Browser -> WebServer）
+  {
+    "mode":"select",
+    "selectsql":"xxx"
+  }
+  結果用（WebServer -> Browser）
+  {
+    "rscode":"ok",  
+    "mode":"select",
+    "selectsql":"xxx",
+    "data":[
+        {
+        "field1":"xxx",
+        "field2":"xxx"
+        },
+        {
+        "field1":"xxx",
+        "field2":"xxx"
+        }
+    ]
+  }
