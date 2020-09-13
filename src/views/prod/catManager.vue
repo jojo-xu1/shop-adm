@@ -2,8 +2,8 @@
   <div id="tagMain" class="app-container">
     <div class="app-header">
       <el-breadcrumb separator="/">
-        <el-breadcrumb-item><el-link type="primary">すべてのカテゴリ</el-link></el-breadcrumb-item>
-        <el-breadcrumb-item><el-link>{{ parent }}</el-link></el-breadcrumb-item>
+        <el-breadcrumb-item><el-link type="primary" @click="setlist(0)">すべてのカテゴリ</el-link></el-breadcrumb-item>
+        <el-breadcrumb-item><el-link type="primary">{{ currentname }}</el-link></el-breadcrumb-item>
       </el-breadcrumb>
       <div class="btn-group">
         <vue-json-to-csv
@@ -33,21 +33,26 @@
                 placeholder=""
               >
               <button style="background:white;height:35px;border-radius:4px;border:1px solid;margin:10px" @click="addCat">新規作成</button>
+              <el-divider />
             </form>
             <div class="row">
               <table class="table-striped">
                 <thead class="thead-dark">
                   <tr>
-                    <th scope="col">Id</th>
-                    <th scope="col">Name</th>
-                    <th scope="col">Sport</th>
+                    <td scope="col">Id</td>
+                    <td scope="col">カテゴリ</td>
                   </tr>
                 </thead>
                 <draggable v-model="list" tag="tbody">
                   <tr v-for="item in list" :key="item.name">
                     <td scope="row">{{ item.id }}</td>
-                    <td><el-link type="primary">{{ item.name }}</el-link></td>
+                    <td><el-link type="primary" @click="setlist(item.id)">{{ item.name }}</el-link></td>
+                    <td /><td /><td /><td /><td /><td />
+                    <td />
                     <td><i class="el-icon-top" /> </td>
+                    <td><i class="el-icon-bottom" /> </td>
+                    <td><i class="el-icon-edit" /> </td>
+                    <td><i class="el-icon-delete" /> </td>
                   </tr>
                 </draggable>
               </table>
@@ -57,7 +62,12 @@
       </el-col>
       <el-col :span="8">
         <div class="grid-content bg-purple-light">
-          <el-tree :data="listData" :props="defaultProps" @node-click="handleNodeClick" />
+          <el-tree
+            :props="defaultProps"
+            :load="loadNode"
+            lazy
+          />
+          <!-- <el-tree :data="listData" :props="defaultProps" @node-click="handleNodeClick" />-->
         </div>
       </el-col>
     </el-row>
@@ -73,38 +83,79 @@ export default {
   components: { VueJsonToCsv, draggable },
   data() {
     return {
+
       listData: [
-        { id: 1, name: 'Abby', sport: 'basket', children: [{ id: 7, name: 'bbb' }] },
-        { id: 2, name: 'Brooke', sport: 'foot', children: [{ id: 7, name: 'bbb' }] },
-        { id: 3, name: 'Courtenay', sport: 'volley', children: [{ id: 7, name: 'bbb' }] },
-        { id: 4, name: 'David', sport: 'rugby', children: [{ id: 7, name: 'bbb' }] },
-        { id: 5, name: 'David', sport: 'rugby', children: [{ id: 7, name: 'bbb' }] }
+        { id: 1, name: '調味料、ビン類', children: [{ id: 5, name: '醤油類' }, { id: 6, name: '油' }] },
+        { id: 2, name: '野菜・くだもの', children: [{ id: 7, name: '根菜、芋類', children: [{ id: 8, name: '長根菜', parentid: 7 }] }] },
+        { id: 3, name: '肉類', children: [{ id: 9, name: '豚肉' }] },
+        { id: 4, name: '飲み物', children: [{ id: 10, name: '牛乳' }] },
+        { id: 4, name: '飲み物', children: [{ id: 10, name: '牛乳' }] }
       ],
-      list: [
-        { id: 1, name: 'Abby', sport: 'basket' },
-        { id: 2, name: 'Brooke', sport: 'foot' },
-        { id: 3, name: 'Courtenay', sport: 'volley' },
-        { id: 4, name: 'David', sport: 'rugby' }
+      listall: [
+        { id: 1, name: '調味料、ビン類', parentid: 0 },
+        { id: 2, name: '野菜・くだもの', parentid: 0 },
+        { id: 3, name: '肉類', parentid: 0 },
+        { id: 4, name: '飲み物', parentid: 0 },
+        { id: 5, name: '醤油類', parentid: 1 },
+        { id: 6, name: '油', parentid: 1 },
+        { id: 7, name: '根菜', parentid: 2 },
+        { id: 8, name: '長根菜', parentid: 7 }
       ],
       dragging: false,
-      parent: '',
+      list: [],
+      currentname: '',
+      currentid: 0,
       defaultProps: {
-        children: 'children',
+        // children: 'children',
         label: 'name'
-      }
+
+      },
+      count: 1
     }
   },
+  mounted() {
+    this.setlist(0)
+    // console.log(this.list)
+  },
   methods: {
+    loadNode(node, resolve) {
+      if (node.level === 0) {
+        return resolve(this.getnode(0))
+      }
+      console.log(resolve(this.getnode(node.data.id)))
+      return resolve(this.getnode(node.data.id))
+    },
     gotolink() {
       // 指定跳转地址
       this.$router.replace('http://netengine.sakura.ne.jp/event-ec/shopadm/setting/shop/csv/5')
     },
     addCat() {
       var cat = {}
-      cat.id = '6'
+      cat.id = '9'
       cat.name = document.getElementById('new-todo').value
-      cat.sport = 'ddddd'
       this.list.push(cat)
+    },
+    addNewTodo() {
+    },
+    setlist(parentid) {
+      this.list = []
+      this.currentname = ''
+      for (var prop in this.listall) {
+        if (parentid === this.listall[prop].id) { this.currentname = this.listall[prop].name }
+        // { id: 1, name: '調味料、ビン類',parentid: 0 },
+        if (parentid === this.listall[prop].parentid) { this.list.push(this.listall[prop]) }
+        // console.log(this.listall[prop])
+      }
+    },
+    getnode(parentid) {
+      var nlist = []
+      for (var prop in this.listall) {
+        // if(parentid==this.listall[prop].id)
+        // { id: 1, name: '調味料、ビン類',parentid: 0 },
+        if (parentid === this.listall[prop].parentid) { nlist.push(this.listall[prop]) }
+        // console.log(this.listall[prop])
+      }
+      return nlist
     },
     handleNodeClick(data) {
       console.log(data)
@@ -138,7 +189,7 @@ export default {
 
   .bg-purple {
     background: #ffffff;
-    height: 280px;
+    height: 380px;
     padding-left:15px;
   }
     .row {
@@ -147,7 +198,7 @@ export default {
   }
   .bg-purple-light {
     background: #ffffff;
-    height: 200px;
+    height: 250px;
   }
   .grid-content {
     min-height: 36px;
@@ -157,26 +208,26 @@ export default {
     background-color: eff0f4;
   }
 .table-striped thead th {
-background-color: rgb(156, 186, 95);
-color: #fff;
+background-color: #ffffff;
+color: #000000;
 border-bottom-width: 0;
 }
 
 /* Column Style */
 .table-striped td {
 color: #000;
+border-collapse: collapse;
 }
 /* Heading and Column Style */
 .table-striped tr, .table-striped th {
-border-width: 1px;
+border-width: 0px;
 border-style: solid;
-border-color: rgb(156, 186, 95);
 }
 
 /* Padding and font style */
 .table-striped td, .table-striped th {
-padding: 5px 10px;
-font-size: 12px;
+padding: 8px 20px;
+font-size: 14px;
 font-family: Verdana;
 font-weight: bold;
 }
