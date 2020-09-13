@@ -11,6 +11,7 @@
 　　https://github.com/jojo-xu1/shop-adm
 
     最新ソードのダウンロード
+    git clone https://github.com/jojo-xu1/shopping.git
     git clone https://github.com/jojo-xu1/shop-adm.git
 
     最新を確認する
