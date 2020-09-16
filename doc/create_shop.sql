@@ -6,9 +6,9 @@
 DROP TABLE IF EXISTS ns_cat;
 CREATE TABLE ns_cat(
     cat_id		    bigint UNSIGNED AUTO_INCREMENT NOT NULL,   #カテゴリID
-    cat_name		varchar(50)		NOT NULL,			#カテゴリ名
-	parent_id		bigint          NOT NULL,		#親カテゴリID、0-Root
-    delflg          varchar(1)      ,           # 削除フラグ　'1' - 削除
+    cat_name		  varchar(50)		NOT NULL,			#カテゴリ名
+	  parent_id		  bigint          NOT NULL,		#親カテゴリID、0-Root
+    delflg        varchar(1)      ,           # 削除フラグ　'1' - 削除
     createtime		datetime		,			# 新規登録日付時刻
     createuser  	varchar(50)		,			# 新規登録者
     updateuser  	varchar(50)		,			# 更新日付時刻
@@ -35,7 +35,7 @@ DROP TABLE IF EXISTS ns_item;
 CREATE TABLE ns_item(
     item_id		    bigint UNSIGNED AUTO_INCREMENT NOT NULL,   #品目ID
     item_name		varchar(50)		NOT NULL,			#品目名
-	goods_id		bigint          NOT NULL,           #商品ID
+	  goods_id		bigint          NOT NULL,           #商品ID
     item_desp		varchar(200)	,			# 品目紹介文
     price           double          ,           # 本体価格
     taxprice        double          ,           # 税込価格

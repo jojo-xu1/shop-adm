@@ -14,15 +14,19 @@ import App from './App'
 import store from './store'
 import router from './router'
 
+import axios from 'axios'
+
 import './icons' // icon
 import './permission' // permission control
 import './utils/error-log' // error log
 
 import * as filters from './filters' // global filters
 
-import Contextmenu from "vue-contextmenujs"
+import Contextmenu from 'vue-contextmenujs'
 
-Vue.use(Contextmenu);
+Vue.use(Contextmenu)
+
+Vue.prototype.$axios = axios
 /**
  * If you don't want to use mock-server
  * you want to use MockJs for mock api
