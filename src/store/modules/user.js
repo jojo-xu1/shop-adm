@@ -35,8 +35,13 @@ const actions = {
     return new Promise((resolve, reject) => {
       login({ account: account.trim(), password: password }).then(response => {
         const { data } = response
-        commit('SET_TOKEN', data)
-        setToken(data)
+        if (process.env.NODE_ENV === 'production') {
+          commit('SET_TOKEN', data)
+          setToken(data)
+        } else {
+          commit('SET_TOKEN', data.token)
+          setToken(data.token)
+        }
         resolve()
       }).catch(error => {
         reject(error)
