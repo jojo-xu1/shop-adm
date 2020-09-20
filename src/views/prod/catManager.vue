@@ -44,9 +44,9 @@
                   </tr>
                 </thead>
                 <draggable v-model="list" tag="tbody">
-                  <tr v-for="item in list" :key="item.name">
-                    <td scope="row">{{ item.id }}</td>
-                    <td><el-link type="primary" @click="setlist(item.id)">{{ item.name }}</el-link></td>
+                  <tr v-for="item in list" :key="item.cat_name">
+                    <td scope="row">{{ item.cat_id }}</td>
+                    <td><el-link type="primary" @click="setlist(item.cat_id)">{{ item.cat_name }}</el-link></td>
                     <td /><td /><td /><td /><td /><td />
                     <td />
                     <td><i class="el-icon-top" /> </td>
@@ -83,23 +83,15 @@ export default {
   components: { VueJsonToCsv, draggable },
   data() {
     return {
-      listall: [
-        { id: 1, name: '調味料、ビン類', parentid: 0 },
-        { id: 2, name: '野菜・くだもの', parentid: 0 },
-        { id: 3, name: '肉類', parentid: 0 },
-        { id: 4, name: '飲み物', parentid: 0 },
-        { id: 5, name: '醤油類', parentid: 1 },
-        { id: 6, name: '油', parentid: 1 },
-        { id: 7, name: '根菜', parentid: 2 },
-        { id: 8, name: '長根菜', parentid: 7 }
-      ],
+      listall: [],
       dragging: false,
       list: [],
       currentname: '',
       currentid: 0,
+
       defaultProps: {
         // children: 'children',
-        label: 'name'
+        label: 'cat_name'
 
       },
       count: 1
@@ -107,15 +99,34 @@ export default {
   },
   mounted() {
     this.setlist(0)
+    var req = {
+      'mode': 'select',
+      'selectsql': 'select cat_id, cat_name, parent_id from ns_cat where parent_id= 0'
+    }
+    this.$axios.post('http://13.112.112.160:8080/test/web.do', req).then((response) => {
+      console.log(response.data)
+      this.list = response.data.data
+    }).catch((response) => {
+      console.log(response)
+    })
     // console.log(this.list)
   },
   methods: {
-    loadNode(node, resolve) {
+    async  loadNode(node, resolve) {
       if (node.level === 0) {
+        var req = {
+          'mode': 'select',
+          'selectsql': 'select cat_id, cat_name, parent_id from ns_cat'
+        }
+        await this.$axios.post('http://13.112.112.160:8080/test/web.do', req).then((response) => {
+          console.log(response.data)
+          this.listall = response.data.data
+        }).catch((response) => {
+          console.log(response)
+        })
         return resolve(this.getnode(0))
       }
-      console.log(resolve(this.getnode(node.data.id)))
-      return resolve(this.getnode(node.data.id))
+      return resolve(this.getnode(node.data.cat_id))
     },
     gotolink() {
       // 指定跳转地址
@@ -129,35 +140,42 @@ export default {
       data.mode = 'insert'
       data.tableName = 'ns_cat'
       data.data = cat
-      this.$axios.post('http://127.0.0.1/test/web.do', data).then(function(resp) {
+      var that = this
+      this.$axios.post('http://13.112.112.160:8080/test/web.do', data).then(function(resp) {
         console.log(resp)
+        var data = {}
+        data.cat_id = resp.data.data
+        data.parent_id = that.currentid
+        data.cat_name = cat.cat_name
+        that.listall.push(data)
+        that.setlist(that.currentid)
       })
     },
     addNewTodo() {
     },
-    setlist(parentid) {
+    setlist(parent_id) {
       this.list = []
       this.currentname = ''
-      this.currentid = parentid
+      this.currentid = parent_id
       for (var prop in this.listall) {
-        if (parentid === this.listall[prop].id) { this.currentname = this.listall[prop].name }
+        if (parent_id === this.listall[prop].cat_id) { this.currentname = this.listall[prop].cat_name }
         // { id: 1, name: '調味料、ビン類',parentid: 0 },
-        if (parentid === this.listall[prop].parentid) { this.list.push(this.listall[prop]) }
+        if (parent_id === this.listall[prop].parent_id) { this.list.push(this.listall[prop]) }
         // console.log(this.listall[prop])
       }
     },
-    getnode(parentid) {
+    getnode(parent_id) {
       var nlist = []
       for (var prop in this.listall) {
         // if(parentid==this.listall[prop].id)
         // { id: 1, name: '調味料、ビン類',parentid: 0 },
-        if (parentid === this.listall[prop].parentid) { nlist.push(this.listall[prop]) }
+        if (parent_id === this.listall[prop].parent_id) { nlist.push(this.listall[prop]) }
         // console.log(this.listall[prop])
       }
       return nlist
     },
     handleNodeClick(data) {
-      console.log(data)
+
     }
   }
 }
