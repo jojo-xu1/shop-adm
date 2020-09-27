@@ -4,7 +4,7 @@
         <div style="width:75%">
           <!--<img id="prod" :src="'http://13.112.112.160/shopping/upimg/'+imageList[current].catimg_path" alt=""  width="100%" >-->
           <div id="imgbox" class="imgbox" :style="{'background-image': 'url(' + 'http://13.112.112.160/shopping/upimg/' + imageList[current].catimg_path + ')'}" v-show="showFlag">
-            <VueDragResize  :style="{ top: (imgheight * lbl.lbl_pst_y) + 'px', left: (imgwidth*lbl.lbl_pst_x) + 'px' }" :isResizable="false" 
+            <VueDragResize  @dragstop="onDragstopExist($event,lbl.index)"  :x="imgwidth*lbl.lbl_pst_x" :y="imgheight * lbl.lbl_pst_y" :w="120" :h="80" :isResizable="false" 
              v-for="(lbl, key) in curLbls" :key="key">
              <div v-if="lbl.delflg==null">
              <img :src="tagimg"  @contextmenu.prevent="onContextmenuExist($event,lbl.index)"  alt="" class="tags" draggable="false" οndragstart="return false">
@@ -44,7 +44,7 @@
               <el-button type="success" @click="addTag">タグ追加</el-button>
               </el-form-item>
               <el-form-item>
-                 <el-button type="warning" @click="onSubmit('true')">確認する</el-button>
+                 <el-button type="warning" @click="onSubmit('this')">確認する</el-button>
               </el-form-item>
             </el-form>
           </div>
@@ -246,27 +246,27 @@ export default {
       console.log(this.curLbls)
     },
     pre(){  
-      if(this.current<=0){
-        this.current=0
-      }else{
-        this.current--;
-      } 
       if(this.newlist.length>0 || this.updateList.length>0) {
-        this.onSubmit('false') 
+        this.onSubmit('pre') 
       }else{
+        if(this.current<=0){
+        this.current=0
+        }else{
+        this.current--;
+        } 
         this.getCurLbls()
       }
       console.log("this.current"+this.current)
     },
     next(){
-      if(this.current>=this.imageList.length-1){
-        this.current=this.imageList.length-1
-      }else{
-        this.current++;
-      }
       if(this.newlist.length>0 || this.updateList.length>0) {
-        this.onSubmit('false') 
+        this.onSubmit('next') 
       }else{
+        if(this.current>=this.imageList.length-1){
+          this.current=this.imageList.length-1
+        }else{
+          this.current++;
+        }
         this.getCurLbls()
       }
       console.log("this.current"+this.current)
@@ -278,13 +278,25 @@ export default {
           cancelButtonText: 'キャンセルする',
           type: 'warning'
         }).then(() => {
-          this.dataSubmit()
+          this.dataSubmit(flag)
           this.$message({
             type: 'success',
             message: '更新しました!'
           });
         }).catch(() => {
-          if(flag=='false'){
+          if(flag=='pre'){
+            if(this.current<=0){
+              this.current=0
+            }else{
+              this.current--;
+            } 
+            this.getCurLbls()
+          }else if(flag=='next'){
+            if(this.current>=this.imageList.length-1){
+              this.current=this.imageList.length-1
+            }else{
+              this.current++;
+            }
             this.getCurLbls()
           }
           this.$message({
@@ -316,6 +328,27 @@ export default {
        this.newlist[index].left=event.left-20;
        this.newlist[index].x=this.newlist[index].left/prod.clientWidth;
        this.newlist[index].y=this.newlist[index].top/prod.clientHeight;
+    },
+    onDragstopExist(event,index){
+       var prod=document.getElementById('imgbox');
+       console.log("eventTop"+event.top+"index"+index+"list.size=="+this.newlist.length)
+       //this.newlist[index].top=event.top-20;
+       //this.newlist[index].left=event.left-20;
+       var newData =true
+       this.curLbls[index].lbl_pst_x=(event.left-20)/prod.clientWidth;
+       this.curLbls[index].lbl_pst_y=(event.top-20)/prod.clientHeight;
+       for(var j in this.updateList){
+          if(this.updateList[j].lbl_id==this.curLbls[index].lbl_id){
+              newData =false
+              this.updateList[index].lbl_pst_x =(event.left-20)/prod.clientWidth;
+              this.updateList[index].lbl_pst_y =(event.top-20)/prod.clientHeight;
+              break
+          }
+        }
+        //updateListに存在しない場合
+        if(newData){
+          this.updateList.push(this.curLbls[index])
+        }
     },
     onContextmenu(event,index){
       let id=index;
@@ -463,7 +496,7 @@ export default {
         }
       }
     },
-    async dataSubmit(){
+    async dataSubmit(flag){
       for(var i in this.newlist){
         if(this.newlist[i].goods_id==''){
           continue
@@ -502,6 +535,8 @@ export default {
           "data":{
             "goods_id":this.updateList[j].goods_id,
             "delflg":this.updateList[j].delflg,
+            "lbl_pst_x":this.updateList[j].lbl_pst_x,
+            "lbl_pst_y":this.updateList[j].lbl_pst_y,
           }
         }
         await this.axios.post('http://13.112.112.160:8080/test/web.do',reqUpdate).then((response)=>{
@@ -529,6 +564,20 @@ export default {
       }).catch((response)=>{
         console.log("Homepage setInit get ns_lbl error!" + response);
       })
+      if(flag=='pre'){
+        if(this.current<=0){
+          this.current=0
+        }else{
+          this.current--;
+        } 
+            
+      }else if(flag=='next'){
+        if(this.current>=this.imageList.length-1){
+          this.current=this.imageList.length-1
+        }else{
+          this.current++;
+        }
+      }
       this.getCurLbls();
     },
   }
@@ -557,11 +606,11 @@ export default {
 }
 .imgbox{
   height: 100%;
-  width: 70%;
+  width: 75%;
   position:absolute;
   margin:0 auto;
   background-repeat: no-repeat;
-  background-size: 100% 100%;
+  background-size: 92% 92%;
 }
 .goodslbl{
     background-image: url('../../assets/images/tag.gif');
