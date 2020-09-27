@@ -219,7 +219,7 @@ export default {
         .catch(response => {
           console.log('Homepage getGoodsRsp  error!' + response)
         })
-      this.getInit()
+      this._getInit()
 
       return this.tableData
     },
