@@ -3,7 +3,7 @@
     <div class="app-header">
       <el-breadcrumb separator="/">
         <el-breadcrumb-item><el-link type="primary" @click="setlist(0)">すべてのカテゴリ</el-link></el-breadcrumb-item>
-        <el-breadcrumb-item><el-link type="primary">{{ currentname }}</el-link></el-breadcrumb-item>
+        <el-breadcrumb-item v-for="(item,key) in breadList" :key="key"><el-link type="primary" @click="setbreadlist(item.cat_id)">{{ item.cat_name }}</el-link></el-breadcrumb-item>
       </el-breadcrumb>
       <div class="btn-group">
         <vue-json-to-csv
@@ -86,7 +86,7 @@ export default {
       listall: [],
       dragging: false,
       list: [],
-      currentname: '',
+      breadList: [],
       currentid: 0,
 
       defaultProps: {
@@ -103,7 +103,7 @@ export default {
       'mode': 'select',
       'selectsql': 'select cat_id, cat_name, parent_id from ns_cat where parent_id= 0'
     }
-    this.$axios.post('http://13.112.112.160:8080/test/web.do', req).then((response) => {
+    this.axios.post('http://13.112.112.160:8080/test/web.do', req).then((response) => {
       console.log(response.data)
       this.list = response.data.data
     }).catch((response) => {
@@ -118,7 +118,7 @@ export default {
           'mode': 'select',
           'selectsql': 'select cat_id, cat_name, parent_id from ns_cat'
         }
-        await this.$axios.post('http://13.112.112.160:8080/test/web.do', req).then((response) => {
+        await this.axios.post('http://13.112.112.160:8080/test/web.do', req).then((response) => {
           console.log(response.data)
           this.listall = response.data.data
         }).catch((response) => {
@@ -141,7 +141,7 @@ export default {
       data.tableName = 'ns_cat'
       data.data = cat
       var that = this
-      this.$axios.post('http://13.112.112.160:8080/test/web.do', data).then(function(resp) {
+      this.axios.post('http://13.112.112.160:8080/test/web.do', data).then(function(resp) {
         console.log(resp)
         var data = {}
         data.cat_id = resp.data.data
@@ -157,12 +157,29 @@ export default {
       this.list = []
       this.currentname = ''
       this.currentid = parent_id
+      if (parent_id === 0) { this.breadList = [] }
       for (var prop in this.listall) {
-        if (parent_id === this.listall[prop].cat_id) { this.currentname = this.listall[prop].cat_name }
+        if (parent_id === this.listall[prop].cat_id) {
+          this.breadList.push(this.listall[prop])
+        }
         // { id: 1, name: '調味料、ビン類',parentid: 0 },
         if (parent_id === this.listall[prop].parent_id) { this.list.push(this.listall[prop]) }
         // console.log(this.listall[prop])
       }
+    },
+    setbreadlist(parent_id) {
+      var temp = []
+      console.log(123)
+      for (var prop in this.breadList) {
+        console.log(this.breadList[prop].parent_id)
+        if (parent_id !== this.breadList[prop].parent_id && parent_id !== this.breadList[prop].cat_id) {
+          temp.push(this.breadList[prop])
+        }
+      }
+      this.breadList = temp
+      console.log('parent_id', parent_id)
+      console.log('test1234', temp)
+      this.setlist(parent_id)
     },
     getnode(parent_id) {
       var nlist = []
