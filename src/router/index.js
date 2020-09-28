@@ -157,18 +157,6 @@ export const asyncRoutes = [
     },
     children: [
       {
-        path: 'price-setting',
-        component: () => import('@/views/prod/priceSetting'),
-        name: 'priceSetting',
-        meta: { title: '商品定価', icon: 'edit' }
-      },
-      {
-        path: 'prod-setting',
-        component: () => import('@/views/prod/prodSetting'),
-        name: 'prodSetting',
-        meta: { title: '売り場設定', icon: 'edit' }
-      },
-      {
         path: 'cat-manager',
         component: () => import('@/views/prod/catManager'),
         name: 'catManager',
@@ -191,6 +179,12 @@ export const asyncRoutes = [
         component: () => import('@/views/prod/imageManager'),
         name: 'imageManager',
         meta: { title: '画像管理', icon: 'edit' }
+      },
+      {
+        path: 'price-setting',
+        component: () => import('@/views/prod/priceSetting'),
+        name: 'priceSetting',
+        meta: { title: '売り場設定', icon: 'edit' }
       }
     ]
   },
