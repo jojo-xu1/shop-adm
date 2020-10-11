@@ -91,7 +91,7 @@
             suffix-icon="el-icon-tickets"
             @change="selectChangedSaleType"
           >
-            <el-option v-for="item in salesTypeList" :key="item.sales_type" :label="item.sales_type_name" :value="item.sales_type" />
+            <el-option v-for="item in salesTypeList" :key="item.sales_type" :label="item.lbl_name" :value="item.sales_type" />
           </el-select>
         </el-form-item>
       </el-form>
@@ -134,11 +134,11 @@ export default {
       current: 0,
       // 販売形式
       salesTypeList: [
-        { sales_type: 0, sales_type_name: '普通' },
-        { sales_type: 1, sales_type_name: '期間特価' },
-        { sales_type: 2, sales_type_name: '会員特価' },
-        { sales_type: 3, sales_type_name: '10％割引' },
-        { sales_type: 4, sales_type_name: 'ポイント5倍' }
+        { sales_type: 0, lbl_name: '普通' },
+        { sales_type: 1, lbl_name: '期間特価' },
+        { sales_type: 2, lbl_name: '会員特価' },
+        { sales_type: 3, lbl_name: '10％割引' },
+        { sales_type: 4, lbl_name: 'ポイント5倍' }
       ],
       defaultProps: {
         label: 'cat_name',
@@ -246,6 +246,20 @@ export default {
       await this.axios.post('http://13.112.112.160:8080/test/web.do', reqTag).then((response) => {
         console.log(response.data)
         this.lbls = response.data.data
+      }).catch((response) => {
+        console.log('Homepage setInit get ns_lbl error!' + response)
+      })
+      // label種類リストをDBから取得する
+      this.salesTypeList = []
+      var sqlSalesType = 'select sales_type,lbl_name from ns_label_img where delflg is null or delflg <> 1'
+      var reqSalesType = {
+        'mode': 'select',
+        'selectsql': sqlSalesType
+      }
+      await this.axios.post('http://13.112.112.160:8080/test/web.do', reqSalesType).then((response) => {
+        console.log('label種類リストをDBから取得する')
+        console.log(response.data)
+        this.salesTypeList = response.data.data
       }).catch((response) => {
         console.log('Homepage setInit get ns_lbl error!' + response)
       })
@@ -403,8 +417,8 @@ export default {
               this.saleTypeId = this.newlist[id].sales_type
               for (var i in this.salesTypeList) {
                 if (this.saleTypeId === this.salesTypeList[i].sales_type.toString) {
-                  this.sales_type_name = this.salesTypeList[i].sales_type_name
-                  console.log('saleTypeId' + this.saleTypeId + 'sales_type_name' + this.sales_type_name)
+                  this.lbl_name = this.salesTypeList[i].lbl_name
+                  console.log('saleTypeId' + this.saleTypeId + 'lbl_name' + this.lbl_name)
                   break
                 }
               }
@@ -495,8 +509,8 @@ export default {
               this.saleTypeId = this.curLbls[id].sales_type
               for (var i in this.salesTypeList) {
                 if (this.saleTypeId === this.salesTypeList[i].sales_type.toString) {
-                  this.sales_type_name = this.salesTypeList[i].sales_type_name
-                  console.log('aaaasaleTypeId' + this.saleTypeId + 'sales_type_name' + this.sales_type_name)
+                  this.lbl_name = this.salesTypeList[i].lbl_name
+                  console.log('aaaasaleTypeId' + this.saleTypeId + 'lbl_name' + this.lbl_name)
                   break
                 }
               }
@@ -556,7 +570,7 @@ export default {
         // console.log("check goodName"+value)
         // console.log(i)
         if (this.salesTypeList[i].sales_type === value) {
-          this.saleTypeName = this.salesTypeList[i].sales_type_name
+          this.saleTypeName = this.salesTypeList[i].lbl_name
           break
         }
       }
