@@ -132,7 +132,7 @@ export default {
       goodsList: [{ goods_id: 1, goods_name: 'abc', cat_id: 2 }],
       // 現在の画像順
       current: 0,
-      //　販売形式
+      // 販売形式
       salesTypeList: [
         { sales_type: 0, sales_type_name: '普通' },
         { sales_type: 1, sales_type_name: '期間特価' },
@@ -233,10 +233,9 @@ export default {
       })
       // カタログと紐づくタグリストをDBから取得する
       this.lbls = []
-      var sqlTag = 'select l.lbl_id,l.catimg_id,l.sales_type, l.goods_id,a.lblpos_id,a.lbl_pst_x,a.lbl_pst_y,c.cat_id'
-      sqlTag += ',g.goods_name,a.delflg'
+      var sqlTag = 'select l.lbl_id,l.catimg_id,l.sales_type, l.goods_id,l.lbl_pst_x,l.lbl_pst_y,c.cat_id'
+      sqlTag += ',g.goods_name,l.delflg'
       sqlTag += ' from ns_label l'
-      sqlTag += ' inner join ns_lblpos a on a.lblpos_id = l.lblpos_id'
       sqlTag += ' left join ns_catimg c on c.catimg_id = l.catimg_id'
       sqlTag += ' left join ns_goods g on g.goods_id = l.goods_id'
       sqlTag += ' where (l.delflg is null or l.delflg <> 1) and c.cat_id = ' + cat_id
@@ -403,7 +402,7 @@ export default {
               this.prodName = this.newlist[id].goods_name
               this.saleTypeId = this.newlist[id].sales_type
               for (var i in this.salesTypeList) {
-                if (this.saleTypeId == this.salesTypeList[i].sales_type) {
+                if (this.saleTypeId === this.salesTypeList[i].sales_type) {
                   this.sales_type_name = this.salesTypeList[i].sales_type_name
                   console.log('saleTypeId' + this.saleTypeId + 'sales_type_name' + this.sales_type_name)
                   break
@@ -423,7 +422,7 @@ export default {
                 //     arr.push(this.newlist[i])
                 //   }
                 // }
-                if (i == index) {
+                if (i === index) {
                   this.newlist[i].delflg = 1
                 }
               }
@@ -495,7 +494,7 @@ export default {
               this.prodName = this.curLbls[id].goods_name
               this.saleTypeId = this.curLbls[id].sales_type
               for (var i in this.salesTypeList) {
-                if (this.saleTypeId == this.salesTypeList[i].sales_type) {
+                if (this.saleTypeId === this.salesTypeList[i].sales_type) {
                   this.sales_type_name = this.salesTypeList[i].sales_type_name
                   console.log('aaaasaleTypeId' + this.saleTypeId + 'sales_type_name' + this.sales_type_name)
                   break
@@ -567,7 +566,6 @@ export default {
         if (this.newlist[i].goods_id === '' || this.newlist[i].sales_type === '' || this.newlist[i].delflg != null) {
           continue
         }
-        await this.registerLblposDb(i)
         await this.registerLabelDb(i)
       }
       for (var j in this.updateList) {
@@ -575,23 +573,6 @@ export default {
         console.log(this.updateList[j].catimg_id)
         console.log(this.updateList[j].goods_id)
         console.log(this.updateList[j].delflg)
-        // ns_lblposテーブルに更新
-        var reqUpdateLblpos = {
-          'mode': 'update',
-          'tableName': 'ns_lblpos',
-          'wheresql': 'lbl_id =' + this.updateList[j].lblpos_id,
-          'data': {
-            'delflg': this.updateList[j].delflg,
-            'lbl_pst_x': this.updateList[j].lbl_pst_x,
-            'lbl_pst_y': this.updateList[j].lbl_pst_y
-          }
-        }
-        await this.axios.post('http://13.112.112.160:8080/test/web.do', reqUpdateLblpos).then((response) => {
-          console.log('Update success!')
-          console.log(response.data)
-        }).catch((response) => {
-          console.log('Update error!' + response)
-        })
         // ns_labelテーブルに更新
         var reqUpdateLabel = {
           'mode': 'update',
@@ -600,7 +581,9 @@ export default {
           'data': {
             'delflg': this.updateList[j].delflg,
             'sales_type': this.updateList[j].sales_type,
-            'goods_id': this.updateList[j].goods_id
+            'goods_id': this.updateList[j].goods_id,
+            'lbl_pst_x': this.updateList[j].lbl_pst_x,
+            'lbl_pst_y': this.updateList[j].lbl_pst_y
           }
         }
         await this.axios.post('http://13.112.112.160:8080/test/web.do', reqUpdateLabel).then((response) => {
@@ -612,10 +595,9 @@ export default {
       }
       // カタログと紐づくタグリストをDBから取得する
       this.lbls = []
-      var sqlTag = 'select l.lbl_id,l.catimg_id,l.sales_type, l.goods_id,a.lblpos_id,a.lbl_pst_x,a.lbl_pst_y,c.cat_id'
+      var sqlTag = 'select l.lbl_id,l.catimg_id,l.sales_type, l.goods_id,l.lbl_pst_x,l.lbl_pst_y,c.cat_id'
       sqlTag += ',g.goods_name,l.delflg'
       sqlTag += ' from ns_label l'
-      sqlTag += ' inner join ns_lblpos a on a.lblpos_id = l.lblpos_id'
       sqlTag += ' left join ns_catimg c on c.catimg_id = l.catimg_id'
       sqlTag += ' left join ns_goods g on g.goods_id = l.goods_id'
       sqlTag += ' where (l.delflg is null or l.delflg <> 1) and c.cat_id = ' + this.imageList[this.current].cat_id
@@ -644,30 +626,6 @@ export default {
       }
       this.getCurLbls()
     },
-    async registerLblposDb(i) {
-      console.log('Insert into Position DB')
-      console.log(this.newlist[i].catimg_id)
-      console.log(this.newlist[i].goods_id)
-      console.log(this.newlist[i].x)
-      console.log(this.newlist[i].y)
-      // ns_lblposテーブルに登録
-      var reqInsertLblpos = {
-        'mode': 'insert',
-        'tableName': 'ns_lblpos',
-        'autofield': 'xxx',
-        'data': {
-          'lbl_pst_x': this.newlist[i].x,
-          'lbl_pst_y': this.newlist[i].y
-        }
-      }
-      await this.axios.post('http://13.112.112.160:8080/test/web.do', reqInsertLblpos).then((response) => {
-        console.log('Insert success!')
-        console.log(response.data.data)
-        this.newlist[i].tempLblId = response.data.data
-      }).catch((response) => {
-        console.log('Insert error!' + response)
-      })
-    },
     async registerLabelDb(i) {
       // ns_labelテーブルに登録
       console.log('Insert into Label DB')
@@ -677,9 +635,10 @@ export default {
         'autofield': 'xxx',
         'data': {
           'sales_type': this.newlist[i].sales_type,
-          'lblpos_id': this.newlist[i].tempLblId,
           'catimg_id': this.newlist[i].catimg_id,
-          'goods_id': this.newlist[i].goods_id
+          'goods_id': this.newlist[i].goods_id,
+          'lbl_pst_x': this.newlist[i].x,
+          'lbl_pst_y': this.newlist[i].y
         }
       }
       await this.axios.post('http://13.112.112.160:8080/test/web.do', reqInsertLabel).then((response) => {
