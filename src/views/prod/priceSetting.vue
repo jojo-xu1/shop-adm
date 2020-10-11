@@ -402,7 +402,7 @@ export default {
               this.prodName = this.newlist[id].goods_name
               this.saleTypeId = this.newlist[id].sales_type
               for (var i in this.salesTypeList) {
-                if (this.saleTypeId === this.salesTypeList[i].sales_type) {
+                if (this.saleTypeId === this.salesTypeList[i].sales_type.toString) {
                   this.sales_type_name = this.salesTypeList[i].sales_type_name
                   console.log('saleTypeId' + this.saleTypeId + 'sales_type_name' + this.sales_type_name)
                   break
@@ -413,7 +413,7 @@ export default {
           {
             label: 'タグ削除',
             onClick: () => {
-              for (var i in this.newlist) {
+              for (var i = 0; i < this.newlist.length; i++) {
                 // if(i!=index){
               //    if(i>index){
                 //     this.newlist[i].index-1;
@@ -494,7 +494,7 @@ export default {
               this.prodName = this.curLbls[id].goods_name
               this.saleTypeId = this.curLbls[id].sales_type
               for (var i in this.salesTypeList) {
-                if (this.saleTypeId === this.salesTypeList[i].sales_type) {
+                if (this.saleTypeId === this.salesTypeList[i].sales_type.toString) {
                   this.sales_type_name = this.salesTypeList[i].sales_type_name
                   console.log('aaaasaleTypeId' + this.saleTypeId + 'sales_type_name' + this.sales_type_name)
                   break
