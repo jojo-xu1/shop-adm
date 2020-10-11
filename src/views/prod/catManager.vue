@@ -3,7 +3,7 @@
     <div class="app-header">
       <el-breadcrumb separator="/">
         <el-breadcrumb-item><el-link type="primary" @click="setlist(0)">すべてのカテゴリ</el-link></el-breadcrumb-item>
-        <el-breadcrumb-item><el-link type="primary">{{ currentname }}</el-link></el-breadcrumb-item>
+        <el-breadcrumb-item v-for="(item,key) in breadList" :key="key"><el-link type="primary" @click="setbreadlist(item.cat_id)">{{ item.cat_name }}</el-link></el-breadcrumb-item>
       </el-breadcrumb>
       <div class="btn-group">
         <vue-json-to-csv
@@ -44,9 +44,9 @@
                   </tr>
                 </thead>
                 <draggable v-model="list" tag="tbody">
-                  <tr v-for="item in list" :key="item.name">
-                    <td scope="row">{{ item.id }}</td>
-                    <td><el-link type="primary" @click="setlist(item.id)">{{ item.name }}</el-link></td>
+                  <tr v-for="item in list" :key="item.cat_name">
+                    <td scope="row">{{ item.cat_id }}</td>
+                    <td><el-link type="primary" @click="setlist(item.cat_id)">{{ item.cat_name }}</el-link></td>
                     <td /><td /><td /><td /><td /><td />
                     <td />
                     <td><i class="el-icon-top" /> </td>
@@ -83,39 +83,48 @@ export default {
   components: { VueJsonToCsv, draggable },
   data() {
     return {
-      listall: [
-        { id: 1, name: '調味料、ビン類', parentid: 0 },
-        { id: 2, name: '野菜・くだもの', parentid: 0 },
-        { id: 3, name: '肉類', parentid: 0 },
-        { id: 4, name: '飲み物', parentid: 0 },
-        { id: 5, name: '醤油類', parentid: 1 },
-        { id: 6, name: '油', parentid: 1 },
-        { id: 7, name: '根菜', parentid: 2 },
-        { id: 8, name: '長根菜', parentid: 7 }
-      ],
+      listall: [],
       dragging: false,
       list: [],
-      currentname: '',
+      breadList: [],
       currentid: 0,
       defaultProps: {
         // children: 'children',
-        label: 'name'
-
+        label: 'cat_name'
       },
       count: 1
     }
   },
   mounted() {
     this.setlist(0)
+    var req = {
+      'mode': 'select',
+      'selectsql': 'select cat_id, cat_name, parent_id from ns_cat where parent_id= 0'
+    }
+    this.$axios.post('http://13.112.112.160:8080/test/web.do', req).then((response) => {
+      console.log(response.data)
+      this.list = response.data.data
+    }).catch((response) => {
+      console.log(response)
+    })
     // console.log(this.list)
   },
   methods: {
-    loadNode(node, resolve) {
+    async  loadNode(node, resolve) {
       if (node.level === 0) {
+        var req = {
+          'mode': 'select',
+          'selectsql': 'select cat_id, cat_name, parent_id from ns_cat'
+        }
+        await this.$axios.post('http://13.112.112.160:8080/test/web.do', req).then((response) => {
+          console.log(response.data)
+          this.listall = response.data.data
+        }).catch((response) => {
+          console.log(response)
+        })
         return resolve(this.getnode(0))
       }
-      console.log(resolve(this.getnode(node.data.id)))
-      return resolve(this.getnode(node.data.id))
+      return resolve(this.getnode(node.data.cat_id))
     },
     gotolink() {
       // 指定跳转地址
@@ -129,35 +138,58 @@ export default {
       data.mode = 'insert'
       data.tableName = 'ns_cat'
       data.data = cat
-      this.$axios.post('http://127.0.0.1/test/web.do', data).then(function(resp) {
+      var that = this
+      this.$axios.post('http://13.112.112.160:8080/test/web.do', data).then(function(resp) {
         console.log(resp)
+        var data = {}
+        data.cat_id = resp.data.data
+        data.parent_id = that.currentid
+        data.cat_name = cat.cat_name
+        that.listall.push(data)
+        that.setlist(that.currentid)
       })
     },
     addNewTodo() {
     },
-    setlist(parentid) {
+    setlist(parent_id) {
       this.list = []
       this.currentname = ''
-      this.currentid = parentid
+      this.currentid = parent_id
+      if (parent_id === 0) { this.breadList = [] }
       for (var prop in this.listall) {
-        if (parentid === this.listall[prop].id) { this.currentname = this.listall[prop].name }
+        if (parent_id === this.listall[prop].cat_id) {
+          this.breadList.push(this.listall[prop])
+        }
         // { id: 1, name: '調味料、ビン類',parentid: 0 },
-        if (parentid === this.listall[prop].parentid) { this.list.push(this.listall[prop]) }
+        if (parent_id === this.listall[prop].parent_id) { this.list.push(this.listall[prop]) }
         // console.log(this.listall[prop])
       }
     },
-    getnode(parentid) {
+    setbreadlist(parent_id) {
+      var temp = []
+      console.log(123)
+      for (var prop in this.breadList) {
+        console.log(this.breadList[prop].parent_id)
+        if (parent_id !== this.breadList[prop].parent_id && parent_id !== this.breadList[prop].cat_id) {
+          temp.push(this.breadList[prop])
+        }
+      }
+      this.breadList = temp
+      console.log('parent_id', parent_id)
+      console.log('test1234', temp)
+      this.setlist(parent_id)
+    },
+    getnode(parent_id) {
       var nlist = []
       for (var prop in this.listall) {
         // if(parentid==this.listall[prop].id)
         // { id: 1, name: '調味料、ビン類',parentid: 0 },
-        if (parentid === this.listall[prop].parentid) { nlist.push(this.listall[prop]) }
+        if (parent_id === this.listall[prop].parent_id) { nlist.push(this.listall[prop]) }
         // console.log(this.listall[prop])
       }
       return nlist
     },
     handleNodeClick(data) {
-      console.log(data)
     }
   }
 }
@@ -173,7 +205,6 @@ export default {
     height: 50px;
     display: flex;
     align-items: center;
-
   }
   .btn-group{
     margin-left: auto;
@@ -185,7 +216,6 @@ export default {
     background: #eff0f4;
     margin-bottom: 15px;
   }
-
   .bg-purple {
     background: #ffffff;
     height: 380px;
@@ -211,7 +241,6 @@ background-color: #ffffff;
 color: #000000;
 border-bottom-width: 0;
 }
-
 /* Column Style */
 .table-striped td {
 color: #000;
@@ -222,7 +251,6 @@ border-collapse: collapse;
 border-width: 0px;
 border-style: solid;
 }
-
 /* Padding and font style */
 .table-striped td, .table-striped th {
 padding: 8px 20px;
