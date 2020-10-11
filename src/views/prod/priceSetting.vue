@@ -71,16 +71,30 @@
       :before-close="handleClose"
     >
       <input type="hidden" :value="currentTag">
-      <el-select
-        v-model="prodId"
-        style="width:100%"
-        placeholder="商品名"
-        suffix-icon="el-icon-tickets"
-        @change="selectChanged"
-      >
-        <el-option v-for="item in goodsList" :key="item.goods_id" :label="item.goods_name" :value="item.goods_id" />
-      </el-select>
-      <p />
+      <el-form label-width="80px">
+        <el-form-item label="商品名: ">
+          <el-select
+            v-model="prodId"
+            style="width:70%"
+            placeholder="商品名"
+            suffix-icon="el-icon-tickets"
+            @change="selectChangedGoods"
+          >
+            <el-option v-for="item in goodsList" :key="item.goods_id" :label="item.goods_name" :value="item.goods_id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="販売形式 : ">
+          <el-select
+            v-model="saleTypeId"
+            style="width:70%"
+            placeholder="販売形式"
+            suffix-icon="el-icon-tickets"
+            @change="selectChangedSaleType"
+          >
+            <el-option v-for="item in salesTypeList" :key="item.sales_type" :label="item.sales_type_name" :value="item.sales_type" />
+          </el-select>
+        </el-form-item>
+      </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="updateProd">確 認</el-button>
@@ -118,6 +132,14 @@ export default {
       goodsList: [{ goods_id: 1, goods_name: 'abc', cat_id: 2 }],
       // 現在の画像順
       current: 0,
+      //　販売形式
+      salesTypeList: [
+        { sales_type: 0, sales_type_name: '普通' },
+        { sales_type: 1, sales_type_name: '期間特価' },
+        { sales_type: 2, sales_type_name: '会員特価' },
+        { sales_type: 3, sales_type_name: '10％割引' },
+        { sales_type: 4, sales_type_name: 'ポイント5倍' }
+      ],
       defaultProps: {
         label: 'cat_name',
         isLeaf: 'leaf'
@@ -130,13 +152,16 @@ export default {
       price: '',
       prodName: '',
       prodId: '',
+      saleTypeName: '',
+      saleTypeId: '',
       ty: '',
       showFlag: false,
       imgheight: 600,
       imgwidth: 800,
       x: '',
       y: '',
-      msg: 'No image'
+      msg: 'No image',
+      tempLblId: ''
     }
   },
   mounted: function() {
@@ -208,12 +233,13 @@ export default {
       })
       // カタログと紐づくタグリストをDBから取得する
       this.lbls = []
-      var sqlTag = 'select a.lbl_id,a.catimg_id,a.goods_id,a.lbl_pst_x,a.lbl_pst_y,c.cat_id'
+      var sqlTag = 'select l.lbl_id,l.catimg_id,l.sales_type, l.goods_id,a.lblpos_id,a.lbl_pst_x,a.lbl_pst_y,c.cat_id'
       sqlTag += ',g.goods_name,a.delflg'
-      sqlTag += ' from ns_lbl a'
-      sqlTag += ' left join ns_catimg c on c.catimg_id = a.catimg_id'
-      sqlTag += ' left join ns_goods g on g.goods_id = a.goods_id'
-      sqlTag += ' where c.cat_id = ' + cat_id
+      sqlTag += ' from ns_label l'
+      sqlTag += ' inner join ns_lblpos a on a.lblpos_id = l.lblpos_id'
+      sqlTag += ' left join ns_catimg c on c.catimg_id = l.catimg_id'
+      sqlTag += ' left join ns_goods g on g.goods_id = l.goods_id'
+      sqlTag += ' where (l.delflg is null or l.delflg <> 1) and c.cat_id = ' + cat_id
       var reqTag = {
         'mode': 'select',
         'selectsql': sqlTag
@@ -323,9 +349,11 @@ export default {
       // item.sanchi=''
       item.goods_id = ''
       item.goods_name = ''
+      item.sales_type = ''
       item.x = ''
       item.y = ''
       item.delflg = null
+      item.tempLblId = ''
       // item.ty="";
       item.index = this.newlist.length
       item.catimg_id = this.imageList[this.current].catimg_id
@@ -373,6 +401,14 @@ export default {
               this.currentLblId = ''
               this.prodId = this.newlist[id].goods_id
               this.prodName = this.newlist[id].goods_name
+              this.saleTypeId = this.newlist[id].sales_type
+              for (var i in this.salesTypeList) {
+                if (this.saleTypeId == this.salesTypeList[i].sales_type) {
+                  this.sales_type_name = this.salesTypeList[i].sales_type_name
+                  console.log('saleTypeId' + this.saleTypeId + 'sales_type_name' + this.sales_type_name)
+                  break
+                }
+              }
             }
           },
           {
@@ -387,7 +423,7 @@ export default {
                 //     arr.push(this.newlist[i])
                 //   }
                 // }
-                if (i === index) {
+                if (i == index) {
                   this.newlist[i].delflg = 1
                 }
               }
@@ -421,17 +457,20 @@ export default {
         // 新規登録の場合
         this.newlist[this.currentTag].goods_id = this.prodId
         this.newlist[this.currentTag].goods_name = this.prodName
+        this.newlist[this.currentTag].sales_type = this.saleTypeId
       } else {
         // 更新の場合
         var newData = true
         this.curLbls[this.currentTag].goods_id = this.prodId
         this.curLbls[this.currentTag].goods_name = this.prodName
+        this.curLbls[this.currentTag].sales_type = this.saleTypeId
         // updateListに既に存在する場合
         for (var j in this.updateList) {
           if (this.updateList[j].lbl_id === this.curLbls[this.currentTag].lbl_id) {
             newData = false
             this.updateList[j].goods_id = this.prodId
             this.updateList[j].goods_name = this.prodName
+            this.updateList[j].sales_type = this.saleTypeId
             break
           }
         }
@@ -454,6 +493,14 @@ export default {
               this.currentLblId = this.curLbls[id].lbl_id
               this.prodId = this.curLbls[id].goods_id
               this.prodName = this.curLbls[id].goods_name
+              this.saleTypeId = this.curLbls[id].sales_type
+              for (var i in this.salesTypeList) {
+                if (this.saleTypeId == this.salesTypeList[i].sales_type) {
+                  this.sales_type_name = this.salesTypeList[i].sales_type_name
+                  console.log('aaaasaleTypeId' + this.saleTypeId + 'sales_type_name' + this.sales_type_name)
+                  break
+                }
+              }
             }
           },
           {
@@ -493,7 +540,7 @@ export default {
       })
       return false
     },
-    selectChanged(value) {
+    selectChangedGoods(value) {
       this.prodId = value
       for (var i in this.goodsList) {
         // console.log("check goodName"+value)
@@ -504,50 +551,59 @@ export default {
         }
       }
     },
+    selectChangedSaleType(value) {
+      this.saleTypeId = value
+      for (var i in this.salesTypeList) {
+        // console.log("check goodName"+value)
+        // console.log(i)
+        if (this.salesTypeList[i].sales_type === value) {
+          this.saleTypeName = this.salesTypeList[i].sales_type_name
+          break
+        }
+      }
+    },
     async dataSubmit(flag) {
       for (var i in this.newlist) {
-        if (this.newlist[i].goods_id === '') {
+        if (this.newlist[i].goods_id === '' || this.newlist[i].sales_type === '' || this.newlist[i].delflg != null) {
           continue
         }
-        console.log(this.newlist[i].catimg_id)
-        console.log(this.newlist[i].goods_id)
-        console.log(this.newlist[i].x)
-        console.log(this.newlist[i].y)
-        var reqInsert = {
-          'mode': 'insert',
-          'tableName': 'ns_lbl',
-          'autofield': 'xxx',
-          'data': {
-            'catimg_id': this.newlist[i].catimg_id,
-            'goods_id': this.newlist[i].goods_id,
-            'lbl_pst_x': this.newlist[i].x,
-            'lbl_pst_y': this.newlist[i].y
-          }
-        }
-        await this.axios.post('http://13.112.112.160:8080/test/web.do', reqInsert).then((response) => {
-          console.log('Insert success!')
-          console.log(response.data)
-        }).catch((response) => {
-          console.log('Insert error!' + response)
-        })
+        await this.registerLblposDb(i)
+        await this.registerLabelDb(i)
       }
       for (var j in this.updateList) {
         console.log(this.updateList[j].lbl_id)
         console.log(this.updateList[j].catimg_id)
         console.log(this.updateList[j].goods_id)
         console.log(this.updateList[j].delflg)
-        var reqUpdate = {
+        // ns_lblposテーブルに更新
+        var reqUpdateLblpos = {
           'mode': 'update',
-          'tableName': 'ns_lbl',
-          'wheresql': 'lbl_id =' + this.updateList[j].lbl_id,
+          'tableName': 'ns_lblpos',
+          'wheresql': 'lbl_id =' + this.updateList[j].lblpos_id,
           'data': {
-            'goods_id': this.updateList[j].goods_id,
             'delflg': this.updateList[j].delflg,
             'lbl_pst_x': this.updateList[j].lbl_pst_x,
             'lbl_pst_y': this.updateList[j].lbl_pst_y
           }
         }
-        await this.axios.post('http://13.112.112.160:8080/test/web.do', reqUpdate).then((response) => {
+        await this.axios.post('http://13.112.112.160:8080/test/web.do', reqUpdateLblpos).then((response) => {
+          console.log('Update success!')
+          console.log(response.data)
+        }).catch((response) => {
+          console.log('Update error!' + response)
+        })
+        // ns_labelテーブルに更新
+        var reqUpdateLabel = {
+          'mode': 'update',
+          'tableName': 'ns_label',
+          'wheresql': 'lbl_id =' + this.updateList[j].lbl_id,
+          'data': {
+            'delflg': this.updateList[j].delflg,
+            'sales_type': this.updateList[j].sales_type,
+            'goods_id': this.updateList[j].goods_id
+          }
+        }
+        await this.axios.post('http://13.112.112.160:8080/test/web.do', reqUpdateLabel).then((response) => {
           console.log('Update success!')
           console.log(response.data)
         }).catch((response) => {
@@ -556,12 +612,13 @@ export default {
       }
       // カタログと紐づくタグリストをDBから取得する
       this.lbls = []
-      var sqlTag = 'select a.lbl_id,a.catimg_id,a.goods_id,a.lbl_pst_x,a.lbl_pst_y,c.cat_id'
-      sqlTag += ',g.goods_name,a.delflg'
-      sqlTag += ' from ns_lbl a'
-      sqlTag += ' left join ns_catimg c on c.catimg_id = a.catimg_id'
-      sqlTag += ' left join ns_goods g on g.goods_id = a.goods_id'
-      sqlTag += ' where c.cat_id = ' + this.imageList[this.current].cat_id
+      var sqlTag = 'select l.lbl_id,l.catimg_id,l.sales_type, l.goods_id,a.lblpos_id,a.lbl_pst_x,a.lbl_pst_y,c.cat_id'
+      sqlTag += ',g.goods_name,l.delflg'
+      sqlTag += ' from ns_label l'
+      sqlTag += ' inner join ns_lblpos a on a.lblpos_id = l.lblpos_id'
+      sqlTag += ' left join ns_catimg c on c.catimg_id = l.catimg_id'
+      sqlTag += ' left join ns_goods g on g.goods_id = l.goods_id'
+      sqlTag += ' where (l.delflg is null or l.delflg <> 1) and c.cat_id = ' + this.imageList[this.current].cat_id
       var reqTag = {
         'mode': 'select',
         'selectsql': sqlTag
@@ -586,9 +643,55 @@ export default {
         }
       }
       this.getCurLbls()
+    },
+    async registerLblposDb(i) {
+      console.log('Insert into Position DB')
+      console.log(this.newlist[i].catimg_id)
+      console.log(this.newlist[i].goods_id)
+      console.log(this.newlist[i].x)
+      console.log(this.newlist[i].y)
+      // ns_lblposテーブルに登録
+      var reqInsertLblpos = {
+        'mode': 'insert',
+        'tableName': 'ns_lblpos',
+        'autofield': 'xxx',
+        'data': {
+          'lbl_pst_x': this.newlist[i].x,
+          'lbl_pst_y': this.newlist[i].y
+        }
+      }
+      await this.axios.post('http://13.112.112.160:8080/test/web.do', reqInsertLblpos).then((response) => {
+        console.log('Insert success!')
+        console.log(response.data.data)
+        this.newlist[i].tempLblId = response.data.data
+      }).catch((response) => {
+        console.log('Insert error!' + response)
+      })
+    },
+    async registerLabelDb(i) {
+      // ns_labelテーブルに登録
+      console.log('Insert into Label DB')
+      var reqInsertLabel = {
+        'mode': 'insert',
+        'tableName': 'ns_label',
+        'autofield': 'xxx',
+        'data': {
+          'sales_type': this.newlist[i].sales_type,
+          'lblpos_id': this.newlist[i].tempLblId,
+          'catimg_id': this.newlist[i].catimg_id,
+          'goods_id': this.newlist[i].goods_id
+        }
+      }
+      await this.axios.post('http://13.112.112.160:8080/test/web.do', reqInsertLabel).then((response) => {
+        console.log('Insert success!')
+        console.log(response.data)
+      }).catch((response) => {
+        console.log('Insert error!' + response)
+      })
     }
   }
 }
+
 </script>
 
 <style>
