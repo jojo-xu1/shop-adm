@@ -10,6 +10,7 @@
       />
     </el-select>
     <span>商品 :</span>
+
     <el-select ref="sel_gds" v-model="goods_id" placeholder="商品名">
       <el-option
         v-for="goods in goodsData"
@@ -36,6 +37,7 @@
       <el-table-column prop="goods_name" label="商品名" width="90" />
       <el-table-column label="品目名" width="120">
         <template slot-scope="scope">
+
           <span style="margin-left: 10px">{{ scope.row.item_name }}</span>
         </template>
       </el-table-column>
