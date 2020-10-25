@@ -5,11 +5,6 @@
         <div class="grid-content bg-purple">
           <div id="todo-list-example">
             <form>
-              <input
-                id="new-todo"
-                style="height:35px;magin-left:5px"
-                placeholder=""
-              >
               <button style="background:white;height:35px;border-radius:4px;border:1px solid;margin:10px" @click="openUpload()">画像アップロード</button>
               <el-divider />
             </form>
@@ -82,26 +77,21 @@
                   :src="imgSrc"
                   alt="Source Image"
                   :img-style="{ 'width': '400px', 'height': '300px' }"
-                  :aspect-ratio="1"
+                  :aspect-ratio="1.3333"
                 />
               </div>
             </td>
             <td />
             <td>
-              <img v-if="cropImg != ''" :src="cropImg" alt="Cropped Image">
+              <img v-if="cropImg != ''" :src="cropImg" alt="Cropped Image" height="300" width="400">
             </td>
           </tr>
         </table>
-        <!-- <img
-          :src="cropImg"
-          style="width: 200px; height: 150px; border: 1px solid gray"
-          alt="Cropped Image"
-        >-->
         <br>
         <br>
 
         <button v-if="imgSrc != ''" style="margin-right: 40px;" @click="cropImage">トリミングする</button>
-        <button v-if="imgSrc != ''" @click="saveImage">保存</button>
+        <button v-if="cropImg != ''" @click="saveImage">保存</button>
       </div>
     </el-dialog>
   </div>
@@ -129,7 +119,11 @@ export default {
       imgPath: '',
       visibleComponent: false,
       imgSrc: '',
-      cropImg: ''
+      cropImg: '',
+      uploadFile: null,
+      filePath: '',
+      filePathMini: '',
+      filename: ''
     }
   },
   mounted() {
@@ -225,6 +219,7 @@ export default {
     },
     setImage(e) {
       const file = e.target.files[0]
+      this.filename = file.filename
       if (!file.type.includes('image/')) {
         alert('Please select an image file')
         return
@@ -234,7 +229,7 @@ export default {
         reader.onload = event => {
           this.imgSrc = event.target.result
           // rebuild cropperjs with the updated source
-          this.$refs.cropper.replace(event.target.result)
+          // this.$refs.cropper.replace(event.target.result)
         }
         reader.readAsDataURL(file)
       } else {
@@ -244,10 +239,27 @@ export default {
     cropImage() {
       // get image data for post processing, e.g. upload or setting image src
       this.cropImg = this.$refs.cropper.getCroppedCanvas().toDataURL()
+      this.dataURLtoFile(this.cropImg, this.filename)
+      console.log('cropImg cropImg cropImg')
+      console.log(this.cropImg)
     },
-    saveImage() {
+    async saveImage() {
       // guess what this does :)
-      this.$refs.cropper.rotate(90)
+      // this.$refs.cropper.rotate(90)
+      const formData = new FormData()
+      formData.append('file', this.uploadFile)
+      await this.axios.post('http://13.112.112.160:8080/test/cat-upload.do', formData).then((response) => {
+        console.log('Upload success!')
+        console.log(response.data)
+        this.filePath = response.data.catimg_path
+        this.filePathMini = response.data.catimg_mini
+        console.log(this.filePath)
+        console.log(this.filePathMini)
+        this.visibleComponent = false
+        this.registerImgDb()
+      }).catch((response) => {
+        console.log('Upload error!' + response)
+      })
     },
     handleClose(done) {
       this.$confirm('画像アップロードやめますか')
@@ -259,6 +271,44 @@ export default {
           done()
         })
         .catch(_ => {})
+    },
+    async registerImgDb() {
+      // ns_catimgテーブルに登録
+      console.log('Insert into catming DB')
+      var reqInsertCatimg = {
+        'mode': 'insert',
+        'tableName': 'ns_catimg',
+        'autofield': 'xxx',
+        'data': {
+          'catimg_path': this.filePath,
+          'catimg_mini': this.filePathMini,
+          'cat_id': this.catId
+        }
+      }
+      await this.axios.post('http://13.112.112.160:8080/test/web.do', reqInsertCatimg).then((response) => {
+        console.log('Insert success!')
+        console.log(response.data)
+        this.imgSrc = ''
+        this.cropImg = ''
+        var obj = document.getElementById('imageFile')
+        obj.value = ''
+        this.getImagesList(this.catId)
+      }).catch((response) => {
+        console.log('Insert error!' + response)
+      })
+      this.$message({
+        type: 'success',
+        message: '保存しました!'
+      })
+    },
+    // base64转file
+    dataURLtoFile(dataurl, filename) {
+      var arr = dataurl.split(','); var mime = arr[0].match(/:(.*?);/)[1]
+      var bstr = atob(arr[1]); var n = bstr.length; var u8arr = new Uint8Array(n)
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n)
+      }
+      this.uploadFile = new File([u8arr], filename, { type: mime })
     }
   }
 }
