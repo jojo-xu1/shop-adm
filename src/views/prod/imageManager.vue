@@ -316,8 +316,9 @@ export default {
 
 <style>
   .app-container{
+    overflow:auto;
     background: #eff0f4;
-    height: 800px;
+    height: 1000px;
     font-size: 14px;
   }
   .app-header{
@@ -351,6 +352,8 @@ export default {
     height: 250px;
   }
   .grid-content {
+    overflow:auto;
+    height: 600px;
     min-height: 36px;
   }
   .row-bg {
@@ -358,6 +361,7 @@ export default {
     background-color: eff0f4;
   }
 .table-striped thead th {
+overflow:auto;
 background-color: #ffffff;
 color: #000000;
 border-bottom-width: 0;
@@ -365,6 +369,7 @@ border-bottom-width: 0;
 
 /* Column Style */
 .table-striped td {
+overflow:auto;
 color: #000;
 border-collapse: collapse;
 }
