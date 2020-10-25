@@ -5,24 +5,130 @@
         <el-breadcrumb-item>
           <el-link type="primary" @click="setAllgoods()">すべてのGOODS</el-link>
         </el-breadcrumb-item>
-        <!-- <el-breadcrumb-item v-for="(item,key) in breadList" :key="key">
-          <el-link type="primary" @click="setbreadList(item.cat_id)">{{ item.cat_name }}</el-link>
-        </el-breadcrumb-item>-->
       </el-breadcrumb>
       <div class="btn-group">
-        <vue-json-to-csv :json-data="list" :labels="{ name: { title: 'First name' } }">
-          <button style="background:white;height:35px;border-radius:4px;border:1px solid">
-            <i class="el-icon-download" />
-            CSVダウンロード
+        <div style="float: left">
+          <button
+            style="
+              background: white;
+              height: 35px;
+              border-radius: 4px;
+              border: 1px solid;
+            "
+          >
+            <a
+              href="http://13.112.112.160:8080/test/downloadcsv?sql=select g.cat_id, g.goods_name, g.goods_id, c.cat_name, c.leaf_flag from ns_goods g left join ns_cat c on g.cat_id = c.cat_id where g.delflg is null or g.delflg <> '1'"
+            >
+              <i class="el-icon-download" />
+              CSVダウンロード
+            </a>
           </button>
-        </vue-json-to-csv>
-        <button
-          style="background:white;height:35px;border-radius:4px;border:1px solid"
-          @click="gotolink"
+
+          <!-- <button
+              style="
+                background: white;
+                height: 35px;
+                border-radius: 4px;
+                border: 1px solid;
+              "
+              @click="handleDownload()"
+            > <i class="el-icon-download" />
+              CSVダウンロード
+
+            </button> -->
+        </div>
+        <!-- <button
+          style="
+            background: white;
+            height: 35px;
+            border-radius: 4px;
+            border: 1px solid;
+          "
+          type="file"
+          ref="upload"
+          @click="uploadHandle"
         >
-          <i class="el-icon-setting" />
-          CSV出力項目設定
-        </button>
+          <i class="el-icon-upload"> CSVアップロード</i>
+        </button> -->
+        <!--
+===========================================================
+ -->
+
+        <div style="float: left">
+          <el-button
+            slot="trigger"
+            size="small"
+            style="
+              background: white;
+              height: 35px;
+              border-radius: 4px;
+              border: 1px solid black;
+              color: black;
+            "
+            @click="handleUpload()"
+          >
+            <i class="el-icon-upload"> CSVアップロード</i>
+          </el-button>
+        </div>
+
+        <el-dialog
+          title="CSVアップロード"
+          :visible.sync="uploadvisible"
+          width="30%"
+          :close-on-click-modal="false"
+        >
+          <el-upload
+            ref="upload"
+            class="upload-demo"
+            action="      "
+            :on-preview="handlePreview"
+            :on-remove="handleRemove"
+            :file-list="fileList"
+            :auto-upload="false"
+          >
+            <el-button
+              slot="trigger"
+              size="small"
+              type="primary"
+            >File Select</el-button>
+            <el-button
+              style="margin-left: 10px"
+              size="small"
+              type="success"
+              @click="submitUpload"
+            >Upload</el-button>
+            <div slot="tip" class="el-upload__tip">Only CSV File</div>
+          </el-upload>
+        </el-dialog>
+
+        <!-- <div style="float: left">
+          <el-upload
+            ref="upload"
+            action=""
+            data=""
+            :file-list="fileList"
+            :on-preview="handlePreview"
+            :show-file-list="false"
+          >
+            <el-button
+              slot="trigger"
+              size="small"
+              style="
+                background: white;
+                height: 35px;
+                border-radius: 4px;
+                border: 1px solid black;
+                color: black;
+              "
+            >
+              <i class="el-icon-upload"> CSVアップロード</i>
+            </el-button>
+          </el-upload>
+        </div> -->
+
+        <!--
+===========================================================
+ -->
       </div>
     </div>
     <el-row :gutter="15">
@@ -30,11 +136,23 @@
         <div class="grid-content bg-purple">
           <div id="todo-list-example">
             <form @submit.prevent="addNewTodo">
-              <input id="new-todo" style="height:35px; magin-left:5px" placeholder>
+              <input
+                id="new-todo"
+                style="height: 35px; magin-left: 5px"
+                placeholder
+              >
               <button
-                style="background:white; height:35px; border-radius:4px; border:1px solid; margin:10px"
+                style="
+                  background: white;
+                  height: 35px;
+                  border-radius: 4px;
+                  border: 1px solid;
+                  margin: 10px;
+                "
                 @click="addGoods"
-              >新規作成</button>
+              >
+                新規作成
+              </button>
               <el-divider />
             </form>
             <div class="row">
@@ -54,12 +172,14 @@
                       <el-link type="primary">{{ item.cat_name }}</el-link>
                     </td>
                     <td>
-                      <el-link type="primary" @click="setlist(item.cat_id)">{{ item.goods_name }}</el-link>
+                      <el-link type="primary" @click="setlist(item.cat_id)">{{
+                        item.goods_name
+                      }}</el-link>
                     </td>
                     <td>
                       <el-button
                         size="mini"
-                        style="border:none"
+                        style="border: none"
                         icon="el-icon-top"
                         @click="handleTop(scope.$index, tableData)"
                       />
@@ -67,7 +187,7 @@
                     <td>
                       <el-button
                         size="mini"
-                        style="border:none"
+                        style="border: none"
                         icon="el-icon-bottom"
                         @click="handleBtm(scope.$index, tableData)"
                       />
@@ -75,17 +195,17 @@
                     <td>
                       <el-button
                         size="mini"
-                        style="border:none"
+                        style="border: none"
                         icon="el-icon-edit"
-                        @click="handleEdit(scope.$index, tableData)"
+                        @click="handleEdit(item.goods_id)"
                       />
                     </td>
                     <td>
                       <el-button
                         size="mini"
-                        style="border:none"
+                        style="border: none"
                         icon="el-icon-delete"
-                        @click.prevent="handleDelete(item.cat_id)"
+                        @click="handleDelete(item.goods_id)"
                       />
                     </td>
                   </tr>
@@ -109,61 +229,76 @@
       </el-col>
     </el-row>
     <p>項目の順番はドラッグ＆ドロップでも変更可能です。</p>
+
+    <el-dialog
+      title="商品编辑"
+      :visible.sync="editvisible"
+      width="30%"
+      :close-on-click-modal="false"
+    >
+      <el-form ref="form" :model="form" label-width="80px">
+        <el-form-item label="商品名">
+          <el-input v-model="form.goods_name" />
+        </el-form-item>
+        <el-form-item>
+          <el-button @click="visible = false">キャンセル</el-button>
+          <el-button type="primary" @click="onSubmit">登録</el-button>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 // import { node } from 'clipboard'
-import VueJsonToCsv from 'vue-json-to-csv'
+
 import draggable from 'vuedraggable'
 export default {
   name: 'GoodsManager',
-  components: { VueJsonToCsv, draggable },
+  components: { draggable },
   data() {
     return {
       treelist: [],
       goodslist: [],
       goods_id: 0,
+      tempid: 0,
       goods_name: '',
       cat_id: -1,
       dragging: false,
       list: [],
       currentname: '',
-      currentid: 5,
+      currentid: -1,
       breadList: [],
+      editvisible: false,
+      uploadvisible: false,
+      fileList: [],
       defaultProps: {
         // children: 'children',
         label: 'cat_name'
       },
-      count: 1
+      count: 1,
+      form: {
+        delivery: false,
+        goods_id: ''
+      }
     }
   },
   mounted() {
-    var reqlist = {
-      mode: 'select',
-      selectsql:
-        " select g.cat_id, g.goods_name, g.goods_id, c.cat_name, c.leaf_flag from ns_goods g left join ns_cat c on g.cat_id = c.cat_id where g.delflg is null or g.delflg <> '1' "
-    }
-    this.$axios
-      .post('http://13.112.112.160:8080/test/web.do', reqlist)
-      .then((response) => {
-        console.log(' 初始表： ', response.data)
-        this.list = response.data.data
-        this.goodslist = response.data.data
-      })
-      .catch((response) => {
-        console.log(response)
-      })
+    this.reFresh()
   },
   methods: {
+    handlePreview(file) {
+      console.log(file)
+    },
     async loadNode(node, resolve) {
       console.log('loadtest')
       if (node.level === 0) {
         var req = {
           mode: 'select',
-          selectsql: 'select cat_id, cat_name, parent_id, leaf_flag from ns_cat'
+          selectsql:
+            'select cat_id, cat_name, parent_id, leaf_flag from ns_cat'
         }
-        await this.$axios
+        await this.axios
           .post('http://13.112.112.160:8080/test/web.do', req)
           .then((response) => {
             //  console.log("数据库连接test");
@@ -180,12 +315,83 @@ export default {
       // console.log("123");
       return resolve(this.getnode(node.data.cat_id))
     },
+    async reFresh() {
+      var reqlist = {
+        mode: 'select',
+        selectsql:
+          " select g.cat_id, g.goods_name, g.goods_id, c.cat_name, c.leaf_flag from ns_goods g left join ns_cat c on g.cat_id = c.cat_id where g.delflg is null or g.delflg <> '1' "
+      }
+      await this.axios
+        .post('http://13.112.112.160:8080/test/web.do', reqlist)
+        .then((response) => {
+          console.log(' 初始表： ', response.data)
+
+          this.goodslist = response.data.data
+          // this.list = this.goodslist;
+          console.log(' list: ', this.list)
+          console.log(' goodslist： ', this.goodslist)
+          this.setlist(this.currentid)
+        })
+        .catch((response) => {
+          console.log(response)
+        })
+    },
     gotolink() {
       // 指定跳转地址
       this.$router.replace(
         'http://netengine.sakura.ne.jp/event-ec/shopadm/setting/shop/csv/5'
       )
     },
+
+    handleUpload() {
+      // console.log(this.msg)
+      this.uploadvisible = true
+      console.log(this.$refs.upload.files)
+    },
+    submitUpload() {
+      this.$refs.upload.submit().then(() => {
+        // 回调函数
+      })
+    },
+    // handleRemove(file, fileList) {
+    //   console.log(file, fileList)
+    // },
+    // handlePreview(file) {
+    //   console.log(file)
+    // },
+    // handleDownload() {
+    //   this.axios
+    //     .get("http://13.112.112.160:8080/test/downloadcsv?sql=select cat_id, goods_name, goods_id from ns_goods")
+    //     .then((response) => {
+    //       console.log(response)
+    //     })
+    //     .catch((response) => {
+
+    //     });
+    // },
+    // handleDownload() {
+    //   this.axios({
+    //     url:
+    //       'http://13.112.112.160:8080/test/downloadcsv?sql=select cat_id, goods_name, goods_id from ns_goods', // 接口名字
+    //     method: 'get',
+    //     params: {},
+    //     responseType: 'blob'
+    //   }).then(function(response) {
+    //     const blob = new Blob([response.data], {
+    //       type:
+    //         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8'
+    //     })
+    //     const aEle = document.createElement('a') // 创建a标签
+    //     const href = window.URL.createObjectURL(blob) // 创建下载的链接
+    //     aEle.href = href
+    //     aEle.download = execlName // 下载后文件名
+    //     document.body.appendChild(aEle)
+    //     aEle.click() // 点击下载
+    //     document.body.removeChild(aEle) // 下载完成移除元素
+    //     window.URL.revokeObjectURL(href) // 释放掉blob对象
+    //   })
+    // },
+
     addGoods() {
       var goods = {}
       goods.cat_id = this.currentid
@@ -195,7 +401,7 @@ export default {
       data.tableName = 'ns_goods'
       data.data = goods
       var that = this
-      this.$axios
+      this.axios
         .post('http://13.112.112.160:8080/test/web.do', data)
         .then(function(resp) {
           //  console.log("resp信息：", resp);
@@ -209,14 +415,14 @@ export default {
         })
 
       var leaf_flag = {}
-      leaf_flag.leaf_flag = '1'
+      leaf_flag.leaf_flag = 1
       var dataleaf = {}
       dataleaf.mode = 'update'
       dataleaf.tableName = 'ns_cat'
       dataleaf.data = leaf_flag
       dataleaf.wheresql = ' cat_id = ' + this.currentid
       console.log('dataleaf', dataleaf)
-      this.$axios
+      this.axios
         .post('http://13.112.112.160:8080/test/web.do', dataleaf)
         .then(function(resp) {
           console.log('resp信息：', resp)
@@ -233,18 +439,74 @@ export default {
     //   };
     //   this.list.push(cat);
     // },
-    // handleDelete() {
-    //   //  根据id删除数据，
-    //   //  1.如何根据id找到此项索引； 2.找到索引，调用splice方法
-    //   //  some根据指定的条件进行判断
-    //   this.list.some((item, i) => {
-    //     if (item.cat_id === cat_id) {
-    //       // 从索引为i的地方开始删除1个
-    //       this.list.splice(i, 1)
-    //       return ture
-    //     }
-    //   })
-    // },
+    handleEdit(goods_id) {
+      this.editvisible = true
+      this.form.goods_id = goods_id
+      console.log('goodsid', goods_id)
+    },
+    async onSubmit() {
+      this.visible = false
+      console.log('SubmitTest:goods_id=', this.form.goods_id)
+      var goods_name = {}
+      goods_name.goods_name = this.form.goods_name
+      var dataNewname = {}
+      dataNewname.mode = 'update'
+      dataNewname.tableName = 'ns_goods'
+      dataNewname.data = goods_name
+      dataNewname.wheresql = ' goods_id = ' + this.form.goods_id
+      console.log('dataNewname', dataNewname)
+      await this.axios
+        .post('http://13.112.112.160:8080/test/web.do', dataNewname)
+        .then(function(resp) {
+          console.log('resp信息：', resp)
+          var data = {}
+          data.goods_name = goods_name
+        })
+      this.reFresh()
+      console.log('crid', this.currentid)
+      this.setlist(this.currentid)
+    },
+    async handleDelete(goods_id) {
+      console.log('delTEST')
+      this.$confirm('商品を削除しますか？', '確認', {
+        confirmButtonText: '確認',
+        cancelButtonText: 'キャンセル',
+        type: 'warning'
+      }).then(async() => {
+        this.$message({
+          type: 'success',
+          message: '削除しました！'
+        })
+        var delflg = {}
+        delflg.delflg = '1'
+        var datadel = {}
+        datadel.mode = 'update'
+        datadel.tableName = 'ns_goods'
+        datadel.data = delflg
+        datadel.wheresql = ' goods_id = ' + goods_id
+        console.log('datadel', datadel)
+        await this.axios
+          .post('http://13.112.112.160:8080/test/web.do', datadel)
+          .then(function(resp) {
+            console.log('resp信息：', resp)
+            var data = {}
+            data.delflg = delflg
+          })
+        this.reFresh()
+        console.log('crid', this.currentid)
+        this.setlist(this.currentid)
+        //   //  根据id删除数据，
+        //   //  1.如何根据id找到此项索引； 2.找到索引，调用splice方法
+        //   //  some根据指定的条件进行判断
+        //   this.list.some((item, i) => {
+        //     if (item.cat_id === cat_id) {
+        //       // 从索引为i的地方开始删除1个
+        //       this.list.splice(i, 1)
+        //       return ture
+        //     }
+        //   })
+      })
+    },
     addNewTodo() {},
     setAllgoods() {
       //  console.log("AllgoodsTest")
@@ -280,25 +542,25 @@ export default {
         }
       }
       //  console.log("当前表", this.list);
-      console.log('breadlist', this.breadList)
+      console.log('list', this.list)
     },
-    setbreadList(cat_id) {
-      var temp = []
-      console.log('setBreadlistTest')
-      for (var prop in this.breadList) {
-        console.log(this.breadList[prop].cat_id)
-        if (
-          cat_id !== this.breadList[prop].cat_id &&
-          cat_id !== this.breadList[prop].goods_id
-        ) {
-          temp.push(this.breadList[prop])
-        }
-      }
-      this.breadList = temp
-      console.log('cat_id', cat_id)
+    // setbreadList(cat_id) {
+    //   var temp = [];
+    //   console.log("setBreadlistTest");
+    //   for (var prop in this.breadList) {
+    //     console.log(this.breadList[prop].cat_id);
+    //     if (
+    //       cat_id !== this.breadList[prop].cat_id &&
+    //       cat_id !== this.breadList[prop].goods_id
+    //     ) {
+    //       temp.push(this.breadList[prop]);
+    //     }
+    //   }
+    //   this.breadList = temp;
+    //   console.log("cat_id", cat_id);
 
-      this.setlist(cat_id)
-    },
+    //   this.setlist(cat_id);
+    // },
     getnode(parent_id) {
       var nlist = []
       for (var prop in this.treelist) {
@@ -338,7 +600,6 @@ export default {
   background: #eff0f4;
   height: 1000px;
   font-size: 14px;
-
 }
 .app-header {
   height: 50px;
