@@ -157,45 +157,45 @@ export default {
       title: '',
       form: {
         delivery: false
-      },
-      rules: {
-        cat: [
-          {
-            required: true,
-            message: 'カテゴリを選択ください',
-            trigger: 'blur'
-          },
-          { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
-        ],
-        goods: [
-          {
-            required: true,
-            message: '商品値段を入力ください',
-            trigger: 'blur'
-          },
-          { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
-        ],
-        item: [
-          { required: true, message: '品目名を入力ください', trigger: 'blur' },
-          { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
-        ],
-        price: [
-          {
-            required: true,
-            message: '商品値段を入力ください',
-            trigger: 'change'
-          },
-          { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
-        ],
-        taxprice: [
-          {
-            required: true,
-            message: '税込値段を入力ください',
-            trigger: 'change'
-          },
-          { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
-        ]
       }
+      // rules: {
+      //   cat: [
+      //     {
+      //       required: true,
+      //       message: 'カテゴリを選択ください',
+      //       trigger: 'blur'
+      //     },
+      //     { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
+      //   ],
+      //   goods: [
+      //     {
+      //       required: true,
+      //       message: '商品値段を入力ください',
+      //       trigger: 'blur'
+      //     },
+      //     { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
+      //   ],
+      //   item: [
+      //     { required: true, message: '品目名を入力ください', trigger: 'blur' },
+      //     { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
+      //   ],
+      //   price: [
+      //     {
+      //       required: true,
+      //       message: '商品値段を入力ください',
+      //       trigger: 'change'
+      //     },
+      //     { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
+      //   ],
+      //   taxprice: [
+      //     {
+      //       required: true,
+      //       message: '税込値段を入力ください',
+      //       trigger: 'change'
+      //     },
+      //     { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
+      //   ]
+      // }
     }
   },
   mounted: function() {
@@ -218,7 +218,7 @@ export default {
           " and im.delflg is null or im.delflg = '' and gd.delflg is null"
       }
       await this.axios
-        .post(this.$baseUrl + '/web.do', req)
+        .post('http://13.112.112.160:8080/test/web.do', req)
         .then(response => {
           console.log(response.data)
           this.form = response.data.data[0]
@@ -270,7 +270,7 @@ export default {
               this.cat_id
           }
           await this.axios
-            .post(this.$baseUrl + '/web.do', req1)
+            .post('http://13.112.112.160:8080/test/web.do', req1)
             .then(response => {
               console.log(response.data)
               that.newTableData = response.data.data
@@ -288,7 +288,7 @@ export default {
               this.goods_id
           }
           await this.axios
-            .post(this.$baseUrl + '/web.do', req2)
+            .post('http://13.112.112.160:8080/test/web.do', req2)
             .then(response => {
               console.log(response.data)
               that.newTableData = response.data.data
@@ -311,7 +311,7 @@ export default {
               " and im.delflg is null or im.delflg = '' and gd.delflg is null "
           }
           await this.axios
-            .post(this.$baseUrl + '/web.do', req3)
+            .post('http://13.112.112.160:8080/test/web.do', req3)
             .then(response => {
               console.log(response.data)
               that.tableData = response.data.data
@@ -331,7 +331,7 @@ export default {
               this.cat_id
           }
           await this.axios
-            .post(this.$baseUrl + '/web.do', req4)
+            .post('http://13.112.112.160:8080/test/web.do', req4)
             .then(response => {
               console.log(response.data)
               that.tableData = response.data.data
@@ -350,7 +350,7 @@ export default {
               this.goods_id
           }
           await this.axios
-            .post(this.$baseUrl + '/web.do', req5)
+            .post('http://13.112.112.160:8080/test/web.do', req5)
             .then(response => {
               console.log(response.data)
               that.tableData = response.data.data
@@ -386,7 +386,7 @@ export default {
           this.cat_id
       }
       await this.axios
-        .post(this.$baseUrl + '/web.do', req)
+        .post('http://13.112.112.160:8080/test/web.do', req)
         .then(response => {
           console.log(response.data)
           this.goodsData = response.data.data
@@ -407,7 +407,7 @@ export default {
           this.new_cat_id
       }
       await this.axios
-        .post(this.$baseUrl + '/web.do', req)
+        .post('http://13.112.112.160:8080/test/web.do', req)
         .then(response => {
           console.log(response.data)
           this.newGoodsData = response.data.data
@@ -427,7 +427,7 @@ export default {
         data: { delflg: '1' }
       }
       await this.axios
-        .post(this.$baseUrl + '/web.do', req)
+        .post('http://13.112.112.160:8080/test/web.do', req)
         .then(response => {})
         .catch(response => {
           console.log('Homepage getGoodsRsp  error!' + response)
@@ -471,7 +471,7 @@ export default {
           "select im.item_id as item_id,im.item_name as item_name,im.sales_rate as sales_rate,im.sales_type as sales_type,im.item_desp as item_desp,im.price as price,im.taxprice as taxprice, im.itemimg as itemimg,gd.goods_name as goods_name,ct.cat_name as cat_name from ns_item im left join ns_goods gd on gd.goods_id = im.goods_id left join ns_cat ct on ct.cat_id = gd.cat_id where im.delflg is null or im.delflg = '' and gd.delflg is null"
       }
       await this.axios
-        .post(this.$baseUrl + '/web.do', req1)
+        .post('http://13.112.112.160:8080/test/web.do', req1)
         .then(response => {
           console.log(response.data)
           this.newTableData = response.data.data
@@ -498,14 +498,20 @@ export default {
         selectsql: 'select * from ns_cat where delflg is null '
       }
       await this.axios
-        .post(this.$baseUrl + '/web.do', req2)
+        .post('http://13.112.112.160:8080/test/web.do', req2)
         .then(response => {
           console.log(response.data)
+          // this.preCatData = response.data.data
           this.catData = response.data.data
         })
         .catch(response => {
           console.log('Homepage getGoodsRsp  error!' + response)
         })
+        // for(prat in this.preCatData){
+        //   if(prat.parent_id ===0){
+        //     this.catData.add(prat);
+        //   }
+        // }
       return this.catData
     },
     onSubmit: async function(id) {
@@ -513,7 +519,7 @@ export default {
       if (this.formParam !== '') {
         await this.axios
           .post(
-            this.$baseUrl + '/item-upload.do',
+            'http://13.112.112.160:8080/test/item-upload.do',
             this.formParam
           )
           .then(response => {
@@ -557,7 +563,7 @@ export default {
         }
         console.log(req)
         await this.axios
-          .post(this.$baseUrl + '/web.do', req)
+          .post('http://13.112.112.160:8080/test/web.do', req)
           .then(response => {})
           .catch(response => {
             console.log('Homepage getGoodsRsp  error!' + response)
@@ -569,7 +575,7 @@ export default {
         var formData = new FormData()
         formData.append('path', '')
         await this.axios
-          .post(this.$baseUrl + '/item-upload.do', formData)
+          .post('http://13.112.112.160:8080/test/item-upload.do', formData)
           .then(response => {
             console.log(response.data)
             this.itemimg = response.data.data
@@ -589,12 +595,12 @@ export default {
             sales_type: this.sales_type,
             price: this.form.price,
             taxprice: this.form.taxprice,
-            itemimg: this.itemimg
+            itemimg: this.form.itemimg
           }
         }
 
         await this.axios
-          .post(this.$baseUrl + '/web.do', req2)
+          .post('http://13.112.112.160:8080/test/web.do', req2)
           .then(response => {
             console.log(response.data)
           })
