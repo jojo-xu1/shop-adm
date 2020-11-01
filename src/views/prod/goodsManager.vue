@@ -17,7 +17,10 @@
             "
           >
             <a
-              :href="this.$baseUrl + '/downloadcsv?sql=select g.cat_id, g.goods_name, g.goods_id, c.cat_name, c.leaf_flag from ns_goods g left join ns_cat c on g.cat_id = c.cat_id where g.delflg is null or g.delflg <> 1'"
+              :href="
+                this.$baseUrl +
+                  '/downloadcsv?sql=select g.cat_id, g.goods_name, g.goods_id, c.cat_name, c.leaf_flag from ns_goods g left join ns_cat c on g.cat_id = c.cat_id where g.delflg is null or g.delflg <> 1'
+              "
             >
               <i class="el-icon-download" />
               CSVダウンロード
@@ -241,7 +244,7 @@
           <el-input v-model="form.goods_name" />
         </el-form-item>
         <el-form-item>
-          <el-button @click="visible = false">キャンセル</el-button>
+          <el-button @click="editvisible = false">キャンセル</el-button>
           <el-button type="primary" @click="onSubmit">登録</el-button>
         </el-form-item>
       </el-form>
@@ -290,6 +293,7 @@ export default {
     handlePreview(file) {
       console.log(file)
     },
+    // tree加载
     async loadNode(node, resolve) {
       console.log('loadtest')
       if (node.level === 0) {
@@ -315,6 +319,7 @@ export default {
       // console.log("123");
       return resolve(this.getnode(node.data.cat_id))
     },
+    // 刷新载入页面
     async reFresh() {
       var reqlist = {
         mode: 'select',
@@ -342,7 +347,7 @@ export default {
         'http://netengine.sakura.ne.jp/event-ec/shopadm/setting/shop/csv/5'
       )
     },
-
+    // upload csv file弹出框
     handleUpload() {
       // console.log(this.msg)
       this.uploadvisible = true
@@ -391,7 +396,7 @@ export default {
     //     window.URL.revokeObjectURL(href) // 释放掉blob对象
     //   })
     // },
-
+    // 新增商品
     addGoods() {
       var goods = {}
       goods.cat_id = this.currentid
@@ -401,44 +406,35 @@ export default {
       data.tableName = 'ns_goods'
       data.data = goods
       var that = this
-      this.axios
-        .post(this.$baseUrl + '/web.do', data)
-        .then(function(resp) {
-          //  console.log("resp信息：", resp);
-          var data = {}
-          data.goods_id = resp.data.data
-          data.cat_id = that.currentid
-          data.goods_name = goods.goods_name
-          that.goodslist.push(data)
-          data.cat_name = that.currentname
-          that.setlist(that.currentid)
-        })
-
-      var leaf_flag = {}
-      leaf_flag.leaf_flag = 1
-      var dataleaf = {}
-      dataleaf.mode = 'update'
-      dataleaf.tableName = 'ns_cat'
-      dataleaf.data = leaf_flag
-      dataleaf.wheresql = ' cat_id = ' + this.currentid
-      console.log('dataleaf', dataleaf)
-      this.axios
-        .post(this.$baseUrl + '/web.do', dataleaf)
-        .then(function(resp) {
-          console.log('resp信息：', resp)
-          var data = {}
-          data.leaf_flag = leaf_flag
-        })
+      this.axios.post(this.$baseUrl + '/web.do', data).then(function(resp) {
+        //  console.log("resp信息：", resp);
+        var data = {}
+        data.goods_id = resp.data.data
+        data.cat_id = that.currentid
+        data.goods_name = goods.goods_name
+        that.goodslist.push(data)
+        data.cat_name = that.currentname
+        that.setlist(that.currentid)
+        document.getElementById('new-todo').value = ''
+      })
+      // 修改为叶节点
+      // var leaf_flag = {}
+      // leaf_flag.leaf_flag = 1
+      // var dataleaf = {}
+      // dataleaf.mode = 'update'
+      // dataleaf.tableName = 'ns_cat'
+      // dataleaf.data = leaf_flag
+      // dataleaf.wheresql = ' cat_id = ' + this.currentid
+      // console.log('dataleaf', dataleaf)
+      // this.axios
+      //   .post(this.$baseUrl + '/web.do', dataleaf)
+      //   .then(function(resp) {
+      //     console.log('resp信息：', resp)
+      //     var data = {}
+      //     data.leaf_flag = leaf_flag
+      //   })
     },
-    // addNew() {
-    //   var cat = {
-    //     //  根据id和name，设定一个对象，调用数组的相关方法，添加到data的list中，
-    //     cat_id: this.cat_id,
-    //     cat_name: document.getElementById("new-todo").value,
-    //     parent_id: this.currentid,
-    //   };
-    //   this.list.push(cat);
-    // },
+    // 编辑商品名
     handleEdit(goods_id) {
       this.editvisible = true
       this.form.goods_id = goods_id
@@ -466,6 +462,7 @@ export default {
       console.log('crid', this.currentid)
       this.setlist(this.currentid)
     },
+    // 删除商品
     async handleDelete(goods_id) {
       console.log('delTEST')
       this.$confirm('商品を削除しますか？', '確認', {
@@ -495,48 +492,21 @@ export default {
         this.reFresh()
         console.log('crid', this.currentid)
         this.setlist(this.currentid)
-        //   //  根据id删除数据，
-        //   //  1.如何根据id找到此项索引； 2.找到索引，调用splice方法
-        //   //  some根据指定的条件进行判断
-        //   this.list.some((item, i) => {
-        //     if (item.cat_id === cat_id) {
-        //       // 从索引为i的地方开始删除1个
-        //       this.list.splice(i, 1)
-        //       return ture
-        //     }
-        //   })
       })
     },
     addNewTodo() {},
+    // 显示allgoods
     setAllgoods() {
       //  console.log("AllgoodsTest")
       this.list = this.goodslist
     },
+    // 显示分类
     setlist(cat_id) {
       //  console.log("setlist测试");
       this.list = []
       // this.currentname = "";
       this.currentid = cat_id
-
-      // if (
-      //   cat_id === 5 ||
-      //   cat_id === 6 ||
-      //   cat_id === 7 ||
-      //   cat_id === 8 ||
-      //   cat_id === 9 ||
-      //   cat_id === 10
-      // ) {
-      //   this.breadList = [];
-      // }
       for (var prop in this.goodslist) {
-        //    console.log("list", this.list);
-        //    console.log("goodslist", this.goodslist);
-        // if (cat_id === this.goodslist[prop].id) {
-        //   this.currentname = this.goodslist[prop].goods_name;
-        // }
-        // if (cat_id === this.goodslist[prop].cat_id) {
-        //   this.breadList.push(this.goodslist[prop]);
-        // }
         if (cat_id === this.goodslist[prop].cat_id) {
           this.list.push(this.goodslist[prop])
         }
@@ -544,23 +514,6 @@ export default {
       //  console.log("当前表", this.list);
       console.log('list', this.list)
     },
-    // setbreadList(cat_id) {
-    //   var temp = [];
-    //   console.log("setBreadlistTest");
-    //   for (var prop in this.breadList) {
-    //     console.log(this.breadList[prop].cat_id);
-    //     if (
-    //       cat_id !== this.breadList[prop].cat_id &&
-    //       cat_id !== this.breadList[prop].goods_id
-    //     ) {
-    //       temp.push(this.breadList[prop]);
-    //     }
-    //   }
-    //   this.breadList = temp;
-    //   console.log("cat_id", cat_id);
-
-    //   this.setlist(cat_id);
-    // },
     getnode(parent_id) {
       var nlist = []
       for (var prop in this.treelist) {
@@ -576,6 +529,7 @@ export default {
     // nodeKeytest() {
     //   console.log('node:', node - key)
     // },
+    // 点击tree节点
     handleNodeClick(node, data, value) {
       // if (node.parent_id !== 0 || node.cat_id !== node.parent_id) {
       console.log('nodeclick:', node)
