@@ -16,7 +16,7 @@
             "
           >
             <a
-              href="http://13.112.112.160:8080/test/downloadcsv?sql=select cat_id, cat_name, parent_id, leaf_flag from ns_cat where delflg is null or delflg <> '1'"
+              :href="this.$baseUrl + '/downloadcsv?sql=select cat_id, cat_name, parent_id, leaf_flag from ns_cat where delflg is null or delflg <> 1'"
             >
               <i class="el-icon-download" />
               CSVダウンロード
@@ -136,7 +136,7 @@ export default {
           'mode': 'select',
           'selectsql': 'select cat_id, cat_name, parent_id,leaf_flag from ns_cat where delflg=0 or delflg is null'
         }
-        await this.axios.post('http://13.112.112.160:8080/test/web.do', req).then((response) => {
+        await this.axios.post(this.$baseUrl + '/web.do', req).then((response) => {
           console.log(response.data)
           this.listall = response.data.data
         }).catch((response) => {
@@ -151,7 +151,7 @@ export default {
         'mode': 'select',
         'selectsql': 'select cat_id, cat_name, parent_id from ns_cat where parent_id= ' + parent_id + ' and (delflg=0 or delflg is null)'
       }
-      await this.axios.post('http://13.112.112.160:8080/test/web.do', req).then((response) => {
+      await this.axios.post(this.$baseUrl + '/web.do', req).then((response) => {
         console.log(response.data)
         this.list = []
         this.list = response.data.data
@@ -172,7 +172,7 @@ export default {
         'selectsql': 'select leaf_flag from ns_cat where cat_id= ' + this.currentid
       }
       var temp
-      await this.axios.post('http://13.112.112.160:8080/test/web.do', reb).then((response) => {
+      await this.axios.post(this.$baseUrl + '/web.do', reb).then((response) => {
         console.log(response.data)
         temp = response.data.data[0]
       }).catch((response) => {
@@ -191,7 +191,7 @@ export default {
       var that = this
       if (temp.leaf_flag === false || temp.leaf_flag === '') {
         console.log('123', that.currentid)
-        this.axios.post('http://13.112.112.160:8080/test/web.do', data).then(function(resp) {
+        this.axios.post(this.$baseUrl + '/web.do', data).then(function(resp) {
           console.log(that.leaf_flag)
           var data = {}
           data.cat_id = resp.data.data
@@ -223,14 +223,14 @@ export default {
           data: { cat_name: value }
         }
         await this.axios
-          .post('http://13.112.112.160:8080/test/web.do', req)
+          .post(this.$baseUrl + '/web.do', req)
           .then(response => {
             var req = {
               'mode': 'select',
               'selectsql': 'select cat_id, cat_name, parent_id,leaf_flag from ns_cat where delflg=0 or delflg is null'
             }
 
-            this.axios.post('http://13.112.112.160:8080/test/web.do', req).then((response) => {
+            this.axios.post(this.$baseUrl + '/web.do', req).then((response) => {
               console.log(response.data)
               this.listall = response.data.data
             }).catch((response) => {
@@ -268,14 +268,14 @@ export default {
           data: { delflg: 1 }
         }
         await this.axios
-          .post('http://13.112.112.160:8080/test/web.do', req)
+          .post(this.$baseUrl + '/web.do', req)
           .then(response => {
             var req = {
               'mode': 'select',
               'selectsql': 'select cat_id, cat_name, parent_id,leaf_flag from ns_cat where delflg=0 or delflg is null'
             }
 
-            this.axios.post('http://13.112.112.160:8080/test/web.do', req).then((response) => {
+            this.axios.post(this.$baseUrl + '/web.do', req).then((response) => {
               console.log(response.data)
               this.listall = response.data.data
             }).catch((response) => {
