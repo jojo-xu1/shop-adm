@@ -474,13 +474,14 @@ export default {
     },
     onSubmit: async function(id) {
       // 画像保存
+      console.log('打印formdate打印' + this.formParam)
       if (this.formParam !== '') {
         await this.axios
-          .post(this.$baseUrl + 'image-upload.do', this.formParam)
+          .post(this.$baseUrl + '/image-upload.do', this.formParam)
           .then(response => {
             console.log('Upload success!')
             console.log(response.data)
-            this.form.itemimg = response.data.itemimg_path
+            this.form.itemimg = response.data.item_path
           })
           .catch(response => {
             console.log('Upload error!' + response)
