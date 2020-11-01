@@ -1,7 +1,7 @@
 <template>
   <div id="items">
     <span>カテゴリ :</span>
-    <el-select ref="sel_cat" v-model="cat_id" pla ceholder="カテゴリ名" @change="catChanged">
+    <el-select ref="sel_cat" v-model="cat_id" placeholder="カテゴリ名" @change="catChanged">
       <el-option
         v-for="colg in catData"
         :key="colg.cat_id"
@@ -10,7 +10,6 @@
       />
     </el-select>
     <span>商品 :</span>
-
     <el-select ref="sel_gds" v-model="goods_id" placeholder="商品名">
       <el-option
         v-for="goods in goodsData"
@@ -37,7 +36,6 @@
       <el-table-column prop="goods_name" label="商品名" width="90" />
       <el-table-column label="品目名" width="120">
         <template slot-scope="scope">
-
           <span style="margin-left: 10px">{{ scope.row.item_name }}</span>
         </template>
       </el-table-column>
@@ -59,8 +57,8 @@
     <div>
       <el-button type="primary" @click="itemInsert">新規登録</el-button>
       <el-dialog :title="title" :close-on-click-modal="false" :visible.sync="visible">
-        <el-form ref="form" :model="form" label-width="80px">
-          <el-form-item label="カテゴリ" :rules="[{ required: true, message: 'カテゴリを選択ください'}]">
+        <el-form ref="form" :rules="rules" :model="form" label-width="80px">
+          <el-form-item label="カテゴリ" prop="cat">
             <el-select v-model="new_cat_id" placeholder="カテゴリ名" @change="newCatChanged">
               <el-option
                 v-for="colg in newCatData"
@@ -70,7 +68,7 @@
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="商品" :rules="[{ required: true, message: '商品類別を選択ください'}]">
+          <el-form-item label="商品" prop="goods">
             <el-select v-model="new_goods_id" placeholder="商品名">
               <el-option
                 v-for="goods in newGoodsData"
@@ -80,23 +78,31 @@
               />
             </el-select>&nbsp;
             <el-checkbox v-model="checked" @change="rateShowToggle">タイムセール</el-checkbox>&nbsp;
-            <el-input v-show="sale_show" v-model="form.sales_rate" />
+            <el-input v-show="sale_show" v-model="form.sales_rate" placeholder="セール率" />
           </el-form-item>
           <el-form-item label="品目ID" hidden="true">
             <el-input v-model="form.item_id" />
           </el-form-item>
-          <el-form-item label="品目名">
+          <el-form-item label="品目名" prop="item">
             <el-input v-model="form.item_name" />
           </el-form-item>
-          <el-form-item label="税抜き">
+          <el-form-item label="税抜き" prop="price">
             <el-input v-model="form.price" />
           </el-form-item>
-          <el-form-item label="税込">
+          <el-form-item label="税込" prop="taxprice">
             <el-input v-model="form.taxprice">円</el-input>
           </el-form-item>
-          <el-form-item label="画像URL" />
           <el-form-item label="品目詳細">
-            <el-input v-model="form.item_desp" type="textarea" />
+            <el-input v-model="form.item_desp" prop="textarea" />
+          </el-form-item>
+          <el-form-item label="画像URL">
+            <el-input v-model="form.itemimg" prop="itemimg" />
+            <div class="file_box">
+              <span class="upload">
+                <input type="file" value="画像選択" accept="image/*" @change="tirggerFile($event)">
+                <img :src="form.imgURL" alt>
+              </span>
+            </div>
           </el-form-item>
           <el-form-item>
             <el-button type="primary" @click="onSubmit(form.item_id)">{{ sub_button }}</el-button>
@@ -124,9 +130,12 @@ export default {
       visible: false,
       delVisible: false,
       sale_show: false,
+      formParam: '',
       catData: [],
       goodsData: [],
       tableData: [],
+      newTableData: [],
+
       saleTypes: [
         { txt: 'セール中', value: 1 },
         { txt: '全て', value: 0 }
@@ -140,6 +149,44 @@ export default {
       title: '',
       form: {
         delivery: false
+      },
+      rules: {
+        cat: [
+          {
+            required: true,
+            message: 'カテゴリを選択ください',
+            trigger: 'blur'
+          },
+          { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
+        ],
+        goods: [
+          {
+            required: true,
+            message: '商品値段を入力ください',
+            trigger: 'blur'
+          },
+          { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
+        ],
+        item: [
+          { required: true, message: '品目名を入力ください', trigger: 'blur' },
+          { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
+        ],
+        price: [
+          {
+            required: true,
+            message: '商品値段を入力ください',
+            trigger: 'change'
+          },
+          { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
+        ],
+        taxprice: [
+          {
+            required: true,
+            message: '税込値段を入力ください',
+            trigger: 'change'
+          },
+          { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
+        ]
       }
     }
   },
@@ -177,19 +224,28 @@ export default {
       this.new_goods_id = this.form.goods_id
 
       this.checked = false
-      this.sale_show = true
+      this.sale_show = false
       console.log(this.hidden)
       if (this.form.sales_type === 1) {
         this.checked = true
         this.sale_show = true
       }
     },
+    // 選択条件リセット
     reset: function() {
       this.cat_id = ''
       this.goodsData = []
       this.goods_id = ''
     },
-    rateShowToggle: function() {},
+    // セール率表示
+    rateShowToggle: function() {
+      if (this.checked) {
+        this.sale_show = true
+      } else {
+        this.sale_show = false
+      }
+    },
+    // 品目検索
     search: async function() {
       var that = this
       console.log(this.saleTypes)
@@ -209,7 +265,7 @@ export default {
             .post('http://13.112.112.160:8080/test/web.do', req1)
             .then(response => {
               console.log(response.data)
-              that.tableData = response.data.data
+              that.newTableData = response.data.data
             })
             .catch(response => {
               console.log('Homepage getGoodsRsp  error!' + response)
@@ -227,13 +283,13 @@ export default {
             .post('http://13.112.112.160:8080/test/web.do', req2)
             .then(response => {
               console.log(response.data)
-              that.tableData = response.data.data
+              that.newTableData = response.data.data
             })
             .catch(response => {
               console.log('Homepage getGoodsRsp  error!' + response)
             })
         } else {
-          this.tableData = []
+          this.newTableData = []
         }
       } else {
         if (this.goods_id.length === 0 && this.cat_id.length === 0) {
@@ -296,20 +352,22 @@ export default {
             })
           console.log(this.tableData)
         } else {
-          this.tableData = []
+          this.newTableData = []
         }
       }
+      this.tableData = this.newTableData
+      // レジ金額再計算
       for (var item in this.tableData) {
         if (this.tableData[item].sales_type === 0) {
-          this.tableData[item].last_price = this.tableData[item].price
+          this.tableData[item].last_price = this.tableData[item].taxprice
         } else {
           this.tableData[item].last_price =
-            this.tableData[item].price * this.tableData[item].sales_rate
+            this.tableData[item].taxprice * this.tableData[item].sales_rate
         }
         console.log(this.tableData[item].last_price)
       }
       console.log(this.tableData)
-      // return this.tableData;
+      return this.tableData
     },
     catChanged: async function() {
       this.goods_id = ''
@@ -374,6 +432,7 @@ export default {
       this.visible = true
       this.getInit()
       this.form = {}
+
       this.newCatData = this.catData
       this.newGoodsData = this.goodsData
       this.new_cat_id = this.cat_id
@@ -381,7 +440,17 @@ export default {
       this.sub_button = '登録'
       this.title = '新規登録'
       this.sale_show = false
+      this.checked = false
     },
+    async tirggerFile(event) {
+      const file = event.target.files[0]
+      let param = new FormData() // 创建form对象
+      param.append('file', file) // 通过append向form对象添加数据
+      this.formParam = param
+      console.log(param.get('file')) // FormData私有类对象，访问不到，可以通过get判断值是否传进去
+      param = ''
+    },
+
     getInit: async function() {
       var req1 = {
         mode: 'select',
@@ -400,10 +469,10 @@ export default {
 
       for (var item in this.tableData) {
         if (this.tableData[item].sales_type === 0) {
-          this.tableData[item].last_price = this.tableData[item].price
+          this.tableData[item].last_price = this.tableData[item].taxprice
         } else {
           this.tableData[item].last_price =
-            this.tableData[item].price * this.tableData[item].sales_rate
+            this.tableData[item].taxprice * this.tableData[item].sales_rate
         }
       }
       console.log(this.tableData)
@@ -427,7 +496,24 @@ export default {
       return this.catData
     },
     onSubmit: async function(id) {
-      this.visible = false
+      // 画像保存
+      if (this.formParam !== '') {
+        await this.axios
+          .post(
+            'http://13.112.112.160:8080/test/item-upload.do',
+            this.formParam
+          )
+          .then(response => {
+            console.log('Upload success!')
+            console.log(response.data)
+            this.form.itemimg = response.data.catimg_path
+          })
+          .catch(response => {
+            console.log('Upload error!' + response)
+          })
+      }
+
+      // セール状態判断
       if (this.checked) {
         this.sales_type = 1
         this.sales_rate = this.form.sales_rate
@@ -435,6 +521,7 @@ export default {
         this.sales_type = 0
         this.sales_rate = null
       }
+      // 品目更新
       if (id) {
         var req = {
           rscode: 'ok',
@@ -460,7 +547,21 @@ export default {
             console.log('Homepage getGoodsRsp  error!' + response)
           })
         console.log('update!')
+        this.visible = false
       } else {
+        // 品目新規
+        var formData = new FormData()
+        formData.append('path', '')
+        await this.axios
+          .post('http://13.112.112.160:8080/test/item-upload.do', formData)
+          .then(response => {
+            console.log(response.data)
+            this.itemimg = response.data.data
+          })
+          .catch(response => {
+            console.log('Homepage getGoodsRsp  error!' + response)
+          })
+        console.log(this.itemimg)
         var req2 = {
           mode: 'insert',
           tableName: 'ns_item',
@@ -472,7 +573,7 @@ export default {
             sales_type: this.sales_type,
             price: this.form.price,
             taxprice: this.form.taxprice,
-            itemimg: this.form.itemimg
+            itemimg: this.itemimg
           }
         }
 
@@ -484,11 +585,14 @@ export default {
           .catch(response => {
             console.log('Homepage getGoodsRsp  error!' + response)
           })
+        console.log('submit!')
       }
-      console.log('submit!')
+
+      this.visible = false
+      this.sales_rate = null
+      this.sales_type = '0'
+      this.formParam = ''
       this.search()
-      this.sales_rate = ''
-      this.sales_type = ''
     }
   }
 }
