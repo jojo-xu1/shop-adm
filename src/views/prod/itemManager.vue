@@ -99,7 +99,15 @@
             <el-input v-model="form.itemimg" prop="itemimg" />
             <div class="file_box">
               <span class="upload">
-                <input type="file" value="画像選択" accept="image/*" @change="tirggerFile($event)">
+                <input
+                  id="imgUpload"
+                  type="file"
+                  value="画像選択"
+                  accept="image/*"
+                  style="display:none"
+                  @change="tirggerFile($event)"
+                >
+                <input type="button" value="画像選択" @click="inputFile()">
                 <img :src="form.imgURL" alt>
               </span>
             </div>
@@ -442,13 +450,18 @@ export default {
       this.sale_show = false
       this.checked = false
     },
-    async tirggerFile(event) {
+    inputFile: function() {
+      document.getElementById('imgUpload').click()
+    },
+    tirggerFile: async function(event) {
+      console.log('上传画像上传画像上传画像上传画像上传画像')
       const file = event.target.files[0]
-      let param = new FormData() // 创建form对象
+      this.event = null
+      const param = new FormData() // 创建form对象
       param.append('file', file) // 通过append向form对象添加数据
+
       this.formParam = param
       console.log(param.get('file')) // FormData私有类对象，访问不到，可以通过get判断值是否传进去
-      param = ''
     },
 
     getInit: async function() {
@@ -461,12 +474,12 @@ export default {
         .post('http://13.112.112.160:8080/test/web.do', req1)
         .then(response => {
           console.log(response.data)
-          this.tableData = response.data.data
+          this.newTableData = response.data.data
         })
         .catch(response => {
           console.log('Homepage getGoodsRsp  error!' + response)
         })
-
+      this.tableData = this.newTableData
       for (var item in this.tableData) {
         if (this.tableData[item].sales_type === 0) {
           this.tableData[item].last_price = this.tableData[item].taxprice
@@ -511,6 +524,9 @@ export default {
           .catch(response => {
             console.log('Upload error!' + response)
           })
+        this.formParam = ''
+        var obj = document.getElementById('imgUpload')
+        obj.value = ''
       }
 
       // セール状態判断
@@ -591,7 +607,6 @@ export default {
       this.visible = false
       this.sales_rate = null
       this.sales_type = '0'
-      this.formParam = ''
       this.search()
     }
   }
