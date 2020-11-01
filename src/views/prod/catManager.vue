@@ -24,20 +24,21 @@
           </button>
         </div>
         <div style="float: left">
-          <el-button
-            slot="trigger"
-            size="small"
-            style="
+          <el-upload>
+            <el-button
+              slot="trigger"
+              size="small"
+              style="
               background: white;
               height: 35px;
               border-radius: 4px;
               border: 1px solid black;
               color: black;
             "
-            @click="handleUpload()"
-          >
-            <i class="el-icon-upload"> CSVアップロード</i>
-          </el-button>
+            >
+              <i class="el-icon-upload"> CSVアップロード</i>
+            </el-button>
+          </el-upload>
         </div>
       </div>
     </div>
@@ -49,8 +50,23 @@
               <input
                 id="new-todo"
                 style="height:35px;magin-left:5px"
-                placeholder=""
+                placeholder="カテゴリ名"
               >
+              <select
+                id="selected"
+                style="
+              background: white;
+              height: 35px;
+              border-radius: 4px;
+              border: 1px solid black;
+              color: black;
+            "
+              >
+                <option value="">leaf_flag</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+              </select>
+
               <button style="background:white;height:35px;border-radius:4px;border:1px solid;margin:10px" @click="addCat">新規作成</button>
               <el-divider />
             </form>
@@ -161,11 +177,6 @@ export default {
       })
     // console.log(this.list)
     },
-    handleUpload() {
-      // console.log(this.msg)
-      this.uploadvisible = true
-      console.log(this.$refs.upload.files)
-    },
     async addCat() {
       var reb = {
         'mode': 'select',
@@ -184,6 +195,7 @@ export default {
       var cat = {}
       cat.parent_id = this.currentid
       cat.cat_name = document.getElementById('new-todo').value
+      cat.leaf_flag = document.getElementById('selected').value
       var data = {}
       data.mode = 'insert'
       data.tableName = 'ns_cat'
@@ -197,8 +209,11 @@ export default {
           data.cat_id = resp.data.data
           data.parent_id = that.currentid
           data.cat_name = cat.cat_name
+          data.leaf_flag = cat.leaf_flag
           that.listall.push(data)
           that.setlist(that.currentid, 1)
+          document.getElementById('new-todo').value = ''
+          document.getElementById('selected').value = ''
         })
       } else {
         alert('カテゴリを所属する商品がありますので、子カテゴリの新規作成はできません')
