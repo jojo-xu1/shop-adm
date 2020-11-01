@@ -17,7 +17,7 @@
             "
           >
             <a
-              href="http://13.112.112.160:8080/test/downloadcsv?sql=select g.cat_id, g.goods_name, g.goods_id, c.cat_name, c.leaf_flag from ns_goods g left join ns_cat c on g.cat_id = c.cat_id where g.delflg is null or g.delflg <> '1'"
+              :href="this.$baseUrl + '/downloadcsv?sql=select g.cat_id, g.goods_name, g.goods_id, c.cat_name, c.leaf_flag from ns_goods g left join ns_cat c on g.cat_id = c.cat_id where g.delflg is null or g.delflg <> 1'"
             >
               <i class="el-icon-download" />
               CSVダウンロード
@@ -299,7 +299,7 @@ export default {
             'select cat_id, cat_name, parent_id, leaf_flag from ns_cat'
         }
         await this.axios
-          .post('http://13.112.112.160:8080/test/web.do', req)
+          .post(this.$baseUrl + '/web.do', req)
           .then((response) => {
             //  console.log("数据库连接test");
             //  console.log(response);
@@ -322,7 +322,7 @@ export default {
           " select g.cat_id, g.goods_name, g.goods_id, c.cat_name, c.leaf_flag from ns_goods g left join ns_cat c on g.cat_id = c.cat_id where g.delflg is null or g.delflg <> '1' "
       }
       await this.axios
-        .post('http://13.112.112.160:8080/test/web.do', reqlist)
+        .post(this.$baseUrl + '/web.do', reqlist)
         .then((response) => {
           console.log(' 初始表： ', response.data)
 
@@ -402,7 +402,7 @@ export default {
       data.data = goods
       var that = this
       this.axios
-        .post('http://13.112.112.160:8080/test/web.do', data)
+        .post(this.$baseUrl + '/web.do', data)
         .then(function(resp) {
           //  console.log("resp信息：", resp);
           var data = {}
@@ -423,7 +423,7 @@ export default {
       dataleaf.wheresql = ' cat_id = ' + this.currentid
       console.log('dataleaf', dataleaf)
       this.axios
-        .post('http://13.112.112.160:8080/test/web.do', dataleaf)
+        .post(this.$baseUrl + '/web.do', dataleaf)
         .then(function(resp) {
           console.log('resp信息：', resp)
           var data = {}
@@ -456,7 +456,7 @@ export default {
       dataNewname.wheresql = ' goods_id = ' + this.form.goods_id
       console.log('dataNewname', dataNewname)
       await this.axios
-        .post('http://13.112.112.160:8080/test/web.do', dataNewname)
+        .post(this.$baseUrl + '/web.do', dataNewname)
         .then(function(resp) {
           console.log('resp信息：', resp)
           var data = {}
@@ -486,7 +486,7 @@ export default {
         datadel.wheresql = ' goods_id = ' + goods_id
         console.log('datadel', datadel)
         await this.axios
-          .post('http://13.112.112.160:8080/test/web.do', datadel)
+          .post(this.$baseUrl + '/web.do', datadel)
           .then(function(resp) {
             console.log('resp信息：', resp)
             var data = {}

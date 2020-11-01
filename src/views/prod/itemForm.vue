@@ -82,7 +82,7 @@ export default {
         selectsql: 'select * from ns_cat where delflg is null '
       }
       await this.axios
-        .post('http://13.112.112.160:8080/test/web.do', req)
+        .post(this.$baseUrl + '/web.do', req)
         .then(response => {
           console.log(response.data)
           this.catData = response.data.data
@@ -101,7 +101,7 @@ export default {
           'select * from ns_goods where delflg is null and cat_id =' + value
       }
       await this.axios
-        .post('http://13.112.112.160:8080/test/web.do', req)
+        .post(this.$baseUrl + '/web.do', req)
         .then(response => {
           console.log(response.data)
           this.goodsData = response.data.data
@@ -131,7 +131,7 @@ export default {
         }
       }
       await this.axios
-        .post('http://13.112.112.160:8080/test/web.do', req)
+        .post(this.$baseUrl + '/web.do', req)
         .then(response => {
           console.log(response.data)
         })

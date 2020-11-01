@@ -50,7 +50,7 @@
     <el-dialog
       title="画像を選択"
       :visible.sync="visibleComponent"
-      width="50%"
+      width="870px"
       :before-close="handleClose"
     >
       <div>
@@ -91,7 +91,7 @@
         <br>
 
         <button v-if="imgSrc != ''" style="margin-right: 40px;" @click="cropImage">トリミングする</button>
-        <button v-if="cropImg != ''" @click="saveImage">保存</button>
+        <button v-if="cropImg != ''" id="submit" @click="saveImage">保存</button>
       </div>
     </el-dialog>
   </div>
@@ -171,8 +171,8 @@ export default {
         console.log(response.data)
         if (response.data.data.length > 0) {
           this.imageList = response.data.data
-          this.catId = cat_id
         }
+        this.catId = cat_id
       }).catch((response) => {
         console.log('Image Response failed' + response)
       })
@@ -246,6 +246,7 @@ export default {
     async saveImage() {
       // guess what this does :)
       // this.$refs.cropper.rotate(90)
+      document.getElementById('submit').disabled = true
       const formData = new FormData()
       formData.append('file', this.uploadFile)
       await this.axios.post(this.$baseUrl + '/cat-upload.do', formData).then((response) => {
