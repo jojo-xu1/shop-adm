@@ -136,7 +136,7 @@ export default {
           'mode': 'select',
           'selectsql': 'select cat_id, cat_name, parent_id from ns_cat'
         }
-        await this.axios.post('http://13.112.112.160:8080/test/web.do', req).then((response) => {
+        await this.axios.post(this.$baseUrl + '/web.do', req).then((response) => {
           console.log(response.data)
           this.listall = response.data.data
         }).catch((response) => {
@@ -167,7 +167,7 @@ export default {
         'mode': 'select',
         'selectsql': 'SELECT t.catimg_id,t.catimg_path,t.cat_id from ns_catimg t where (t.delflg is null or t.delflg <> 1) and t.cat_id =' + cat_id
       }
-      await this.axios.post('http://13.112.112.160:8080/test/web.do', reqCat).then((response) => {
+      await this.axios.post(this.$baseUrl + '/web.do', reqCat).then((response) => {
         console.log(response.data)
         if (response.data.data.length > 0) {
           this.imageList = response.data.data
@@ -205,7 +205,7 @@ export default {
           'delflg': '1'
         }
       }
-      await this.axios.post('http://13.112.112.160:8080/test/web.do', reqUpdate).then((response) => {
+      await this.axios.post(this.$baseUrl + '/web.do', reqUpdate).then((response) => {
         console.log('Update success!')
         console.log(response.data)
       }).catch((response) => {
@@ -248,7 +248,7 @@ export default {
       // this.$refs.cropper.rotate(90)
       const formData = new FormData()
       formData.append('file', this.uploadFile)
-      await this.axios.post('http://13.112.112.160:8080/test/cat-upload.do', formData).then((response) => {
+      await this.axios.post(this.$baseUrl + '/cat-upload.do', formData).then((response) => {
         console.log('Upload success!')
         console.log(response.data)
         this.filePath = response.data.catimg_path
@@ -285,7 +285,7 @@ export default {
           'cat_id': this.catId
         }
       }
-      await this.axios.post('http://13.112.112.160:8080/test/web.do', reqInsertCatimg).then((response) => {
+      await this.axios.post(this.$baseUrl + '/web.do', reqInsertCatimg).then((response) => {
         console.log('Insert success!')
         console.log(response.data)
         this.imgSrc = ''

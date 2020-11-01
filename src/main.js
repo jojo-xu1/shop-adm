@@ -20,12 +20,12 @@ import './utils/error-log' // error log
 
 import * as filters from './filters' // global filters
 
-import Contextmenu from "vue-contextmenujs"
+import Contextmenu from 'vue-contextmenujs'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
 
-Vue.use(VueAxios,axios)
-Vue.use(Contextmenu);
+Vue.use(VueAxios, axios)
+Vue.use(Contextmenu)
 /**
  * If you don't want to use mock-server
  * you want to use MockJs for mock api
@@ -38,6 +38,8 @@ if (process.env.NODE_ENV === 'production') {
   const { mockXHR } = require('../mock')
   mockXHR()
 }
+
+Vue.prototype.$baseUrl = process.env.NODE_ENV === 'production' ? 'http://13.112.112.160:8081/test/' : 'http://13.112.112.160:8080/test/'
 
 Vue.use(Element, {
   size: Cookies.get('size') || 'medium', // set element-ui default size
