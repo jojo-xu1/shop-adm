@@ -157,45 +157,45 @@ export default {
       title: '',
       form: {
         delivery: false
-      },
-      rules: {
-        cat: [
-          {
-            required: true,
-            message: 'カテゴリを選択ください',
-            trigger: 'blur'
-          },
-          { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
-        ],
-        goods: [
-          {
-            required: true,
-            message: '商品値段を入力ください',
-            trigger: 'blur'
-          },
-          { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
-        ],
-        item: [
-          { required: true, message: '品目名を入力ください', trigger: 'blur' },
-          { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
-        ],
-        price: [
-          {
-            required: true,
-            message: '商品値段を入力ください',
-            trigger: 'change'
-          },
-          { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
-        ],
-        taxprice: [
-          {
-            required: true,
-            message: '税込値段を入力ください',
-            trigger: 'change'
-          },
-          { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
-        ]
       }
+      // rules: {
+      //   cat: [
+      //     {
+      //       required: true,
+      //       message: 'カテゴリを選択ください',
+      //       trigger: 'blur'
+      //     },
+      //     { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
+      //   ],
+      //   goods: [
+      //     {
+      //       required: true,
+      //       message: '商品値段を入力ください',
+      //       trigger: 'blur'
+      //     },
+      //     { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
+      //   ],
+      //   item: [
+      //     { required: true, message: '品目名を入力ください', trigger: 'blur' },
+      //     { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
+      //   ],
+      //   price: [
+      //     {
+      //       required: true,
+      //       message: '商品値段を入力ください',
+      //       trigger: 'change'
+      //     },
+      //     { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
+      //   ],
+      //   taxprice: [
+      //     {
+      //       required: true,
+      //       message: '税込値段を入力ください',
+      //       trigger: 'change'
+      //     },
+      //     { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
+      //   ]
+      // }
     }
   },
   mounted: function() {
@@ -501,11 +501,17 @@ export default {
         .post('http://13.112.112.160:8080/test/web.do', req2)
         .then(response => {
           console.log(response.data)
+          // this.preCatData = response.data.data
           this.catData = response.data.data
         })
         .catch(response => {
           console.log('Homepage getGoodsRsp  error!' + response)
         })
+        // for(prat in this.preCatData){
+        //   if(prat.parent_id ===0){
+        //     this.catData.add(prat);
+        //   }
+        // }
       return this.catData
     },
     onSubmit: async function(id) {
@@ -589,7 +595,7 @@ export default {
             sales_type: this.sales_type,
             price: this.form.price,
             taxprice: this.form.taxprice,
-            itemimg: this.itemimg
+            itemimg: this.form.itemimg
           }
         }
 
