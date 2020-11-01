@@ -6,20 +6,39 @@
         <el-breadcrumb-item v-for="(item,temp) in breadList" :key="temp"><el-link type="primary" @click="setbreadlist(item.cat_id)">{{ item.cat_name }}</el-link></el-breadcrumb-item>
       </el-breadcrumb>
       <div class="btn-group">
-        <vue-json-to-csv
-          :json-data="list"
-          :labels="{ name: { title: 'First name' } }"
-        >
-          <button style="background:white;height:35px;border-radius:4px;border:1px solid">
-            <i class="el-icon-download" />
-            CSVダウンロード
+        <div style="float: left">
+          <button
+            style="
+              background: white;
+              height: 35px;
+              border-radius: 4px;
+              border: 1px solid;
+            "
+          >
+            <a
+              href="http://13.112.112.160:8080/test/downloadcsv?sql=select cat_id, cat_name, parent_id, leaf_flag from ns_cat where delflg is null or delflg <> '1'"
+            >
+              <i class="el-icon-download" />
+              CSVダウンロード
+            </a>
           </button>
-        </vue-json-to-csv>
-        <button style="background:white;height:35px;border-radius:4px;border:1px solid" @click="gotolink">
-          <i class="el-icon-setting" />
-          CSVアップロード
-        </button>
-
+        </div>
+        <div style="float: left">
+          <el-button
+            slot="trigger"
+            size="small"
+            style="
+              background: white;
+              height: 35px;
+              border-radius: 4px;
+              border: 1px solid black;
+              color: black;
+            "
+            @click="handleUpload()"
+          >
+            <i class="el-icon-upload"> CSVアップロード</i>
+          </el-button>
+        </div>
       </div>
     </div>
     <el-row :gutter="15">
@@ -86,11 +105,10 @@
 </template>
 
 <script>
-import VueJsonToCsv from 'vue-json-to-csv'
 import draggable from 'vuedraggable'
 export default {
   name: 'CatManager',
-  components: { VueJsonToCsv, draggable },
+  components: { draggable },
   data() {
     return {
       listall: [],
@@ -128,11 +146,6 @@ export default {
       }
       return resolve(this.getnode(node.data.cat_id))
     },
-    gotolink() {
-      // 指定跳转地址
-      this.$router.replace('http://netengine.sakura.ne.jp/event-ec/shopadm/setting/shop/csv/5')
-    },
-
     async refresh(parent_id) {
       var req = {
         'mode': 'select',
@@ -147,6 +160,11 @@ export default {
         console.log(response)
       })
     // console.log(this.list)
+    },
+    handleUpload() {
+      // console.log(this.msg)
+      this.uploadvisible = true
+      console.log(this.$refs.upload.files)
     },
     async addCat() {
       var reb = {
