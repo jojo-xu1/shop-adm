@@ -174,7 +174,7 @@ export default {
           'mode': 'select',
           'selectsql': 'select cat_id, cat_name, parent_id from ns_cat'
         }
-        await this.axios.post('http://13.112.112.160:8080/test/web.do', req).then((response) => {
+        await this.axios.post(this.$baseUrl + '/web.do', req).then((response) => {
           console.log(response.data)
           this.catList = response.data.data
         }).catch((response) => {
@@ -207,7 +207,7 @@ export default {
         'selectsql': 'SELECT ns_catimg.catimg_id, ns_catimg.catimg_path, ' +
           'ns_catimg.cat_id, ns_cat.cat_name from ns_catimg left join ns_cat on ns_catimg.cat_id = ns_cat.cat_id where ns_cat.cat_id =' + cat_id
       }
-      await this.axios.post('http://13.112.112.160:8080/test/web.do', reqCat).then((response) => {
+      await this.axios.post(this.$baseUrl + '/web.do', reqCat).then((response) => {
         console.log(response.data)
         if (response.data.data.length > 0) {
           this.imageList = response.data.data
@@ -224,7 +224,7 @@ export default {
         'mode': 'select',
         'selectsql': 'select goods_id,goods_name,cat_id from ns_goods where delflg is null and cat_id =' + cat_id
       }
-      await this.axios.post('http://13.112.112.160:8080/test/web.do', reqGoods).then((response) => {
+      await this.axios.post(this.$baseUrl + '/web.do', reqGoods).then((response) => {
         console.log('Goods list get')
         console.log(response.data)
         this.goodsList = response.data.data
@@ -243,7 +243,7 @@ export default {
         'mode': 'select',
         'selectsql': sqlTag
       }
-      await this.axios.post('http://13.112.112.160:8080/test/web.do', reqTag).then((response) => {
+      await this.axios.post(this.$baseUrl + '/web.do', reqTag).then((response) => {
         console.log(response.data)
         this.lbls = response.data.data
       }).catch((response) => {
@@ -256,7 +256,7 @@ export default {
         'mode': 'select',
         'selectsql': sqlSalesType
       }
-      await this.axios.post('http://13.112.112.160:8080/test/web.do', reqSalesType).then((response) => {
+      await this.axios.post(this.$baseUrl + '/web.do', reqSalesType).then((response) => {
         console.log('label種類リストをDBから取得する')
         console.log(response.data)
         this.salesTypeList = response.data.data
@@ -600,7 +600,7 @@ export default {
             'lbl_pst_y': this.updateList[j].lbl_pst_y
           }
         }
-        await this.axios.post('http://13.112.112.160:8080/test/web.do', reqUpdateLabel).then((response) => {
+        await this.axios.post(this.$baseUrl + '/web.do', reqUpdateLabel).then((response) => {
           console.log('Update success!')
           console.log(response.data)
         }).catch((response) => {
@@ -619,7 +619,7 @@ export default {
         'mode': 'select',
         'selectsql': sqlTag
       }
-      await this.axios.post('http://13.112.112.160:8080/test/web.do', reqTag).then((response) => {
+      await this.axios.post(this.$baseUrl + '/web.do', reqTag).then((response) => {
         console.log(response.data)
         this.lbls = response.data.data
       }).catch((response) => {
@@ -655,7 +655,7 @@ export default {
           'lbl_pst_y': this.newlist[i].y
         }
       }
-      await this.axios.post('http://13.112.112.160:8080/test/web.do', reqInsertLabel).then((response) => {
+      await this.axios.post(this.$baseUrl + '/web.do', reqInsertLabel).then((response) => {
         console.log('Insert success!')
         console.log(response.data)
       }).catch((response) => {
