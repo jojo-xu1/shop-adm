@@ -190,7 +190,7 @@ export const asyncRoutes = [
         path: 'menu-setting',
         component: () => import('@/views/prod/menuSetting'),
         name: 'menuSetting',
-        meta: { title: 'メニュー', icon: 'edit' }
+        meta: { title: 'レシピ―', icon: 'edit' }
       }
     ]
   },

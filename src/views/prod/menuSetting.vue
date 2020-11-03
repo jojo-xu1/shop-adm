@@ -18,106 +18,80 @@
         :value="goods.goods_id"
       />
     </el-select>
-    <span>タイムセール :</span>
-    <el-select v-model="salesType" placeholder="全て">
-      <el-option v-for="slp in saleTypes" :key="slp.value" :label="slp.txt" :value="slp.value" />
-    </el-select>
+
     <br>
     <el-button type="primary" @click="search">检索</el-button>
     <el-button type="info" @click="reset">リセット</el-button>
+    <el-button type="primary" @click="itemInsert">新規登録</el-button>
 
     <el-table :data="tableData" style="width: 100%">
-      <el-table-column label="品目ID" width="75">
+      <el-table-column label="レシピID" width="90">
         <template slot-scope="scope">
-          <span style="margin-left: 10px">{{ scope.row.item_id }}</span>
+          <span style="margin-left: 10px">{{ scope.row.rsp_id }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="cat_name" label="カテゴリ名" width="90" />
-      <el-table-column prop="goods_name" label="商品名" width="90" />
-      <el-table-column label="品目名" width="120">
-        <template slot-scope="scope">
-          <span style="margin-left: 10px">{{ scope.row.item_name }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column prop="item_desp" label="品目詳細" width="180" />
-      <el-table-column prop="price" label="税抜き" width="75" />
-      <el-table-column prop="taxprice" label="税込" width="75" />
-      <el-table-column prop="sales_rate" label="割引率" width="75" />
-      <el-table-column prop="last_price" label="レジ金額" width="75" />
-      <el-table-column prop="itemimg" label="画像URL" width="120" />
+      <el-table-column prop="rsp_name" label="レシピ名" width="180" />
+      <el-table-column prop="rep_desp" label="レシピ紹介文" width="260" />
+      <el-table-column prop="rsp_img" label="レシピ画像Path" width="180" />
+      <el-table-column prop="rsp_metial" label="何人分" width="180" />
+
       <el-table-column label="操作">
         <template slot-scope="scope">
-          <el-button size="mini" @click="itemUpdate(scope.row.item_id)">変更</el-button>
-          <el-popconfirm title="削除するか？" @onConfirm="itemDelete(scope.row.item_id)">
+          <el-button size="mini" @click="itemUpdate(scope.row.rsp_id)">変更</el-button>
+          <el-popconfirm title="削除するか？" @onConfirm="itemDelete(scope.row.rsp_id)">
             <el-button slot="reference" size="mini" type="danger">删除</el-button>
           </el-popconfirm>
+
+          <el-button size="mini" @click="rspGoodsWin(scope.row.rsp_id)">材料明細リスト</el-button>
+
         </template>
       </el-table-column>
     </el-table>
     <div>
-      <el-button type="primary" @click="itemInsert">新規登録</el-button>
+
       <el-dialog :title="title" :close-on-click-modal="false" :visible.sync="visible">
         <el-form ref="form" :rules="rules" :model="form" label-width="80px">
-          <el-form-item label="カテゴリ" prop="cat">
-            <el-select v-model="new_cat_id" placeholder="カテゴリ名" @change="newCatChanged">
-              <el-option
-                v-for="colg in newCatData"
-                :key="colg.cat_id"
-                :label="colg.cat_name"
-                :value="colg.cat_id"
-              />
-            </el-select>
+
+          <el-form-item label="レシピID" hidden="true">
+            <el-input v-model="form.rsp_id" />
           </el-form-item>
-          <el-form-item label="商品" prop="goods">
-            <el-select v-model="new_goods_id" placeholder="商品名">
-              <el-option
-                v-for="goods in newGoodsData"
-                :key="goods.goods_id"
-                :label="goods.goods_name"
-                :value="goods.goods_id"
-              />
-            </el-select>&nbsp;
-            <el-checkbox v-model="checked" @change="rateShowToggle">タイムセール</el-checkbox>&nbsp;
-            <el-input v-show="sale_show" v-model="form.sales_rate" placeholder="セール率" />
+          <el-form-item label="レシピ名" prop="rsp_name">
+            <el-input v-model="form.rsp_name" />
           </el-form-item>
-          <el-form-item label="品目ID" hidden="true">
-            <el-input v-model="form.item_id" />
+          <el-form-item label="何人分" prop="rsp_metial">
+            <el-input v-model="form.rsp_metial" />
           </el-form-item>
-          <el-form-item label="品目名" prop="item">
-            <el-input v-model="form.item_name" />
-          </el-form-item>
-          <el-form-item label="税抜き" prop="price">
-            <el-input v-model="form.price" />
-          </el-form-item>
-          <el-form-item label="税込" prop="taxprice">
-            <el-input v-model="form.taxprice">円</el-input>
-          </el-form-item>
-          <el-form-item label="品目詳細">
-            <el-input v-model="form.item_desp" prop="textarea" />
+          <el-form-item label="レシピ紹介文">
+            <el-input v-model="form.rep_desp" prop="rep_desp" />
           </el-form-item>
           <el-form-item label="画像URL">
-            <el-input v-model="form.itemimg" prop="itemimg" />
+            <el-input v-model="form.rsp_img" prop="itemimg" />
             <div class="file_box">
               <span class="upload">
                 <input type="file" value="画像選択" accept="image/*" @change="tirggerFile($event)">
-                <img :src="form.imgURL" alt>
+                <img :src="form.rsp_img" alt>
               </span>
             </div>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="onSubmit(form.item_id)">{{ sub_button }}</el-button>
+            <el-button type="primary" @click="onSubmit(form.rsp_id)">{{ sub_button }}</el-button>
             <el-button @click="visible = false">キャンセル</el-button>
           </el-form-item>
         </el-form>
       </el-dialog>
     </div>
+
+    <!-- レシビPOP -->
+    <RspPop :show="popshow" :title="poptitle" :rspid="current_rspid" @hidePop="hidePop" @submitPop="submitPop" />
+
   </div>
 </template>
 
 <script>
+import RspPop from '@/components/RspPop'
 export default {
   name: 'MenuSetting',
-
+  components: { RspPop },
   data() {
     return {
       itemId: '',
@@ -135,6 +109,9 @@ export default {
       goodsData: [],
       tableData: [],
       newTableData: [],
+      popshow: false,
+      poptitle: '',
+      current_rspid: '',
 
       saleTypes: [
         { txt: 'セール中', value: 1 },
@@ -151,41 +128,25 @@ export default {
         delivery: false
       },
       rules: {
-        cat: [
+        rsp_name: [
+          { required: true, message: 'レシピ名を入力ください', trigger: 'blur' },
+          { min: 1, max: 50, message: '50桁数以内', trigger: 'blur' }
+        ],
+        rsp_metial: [
           {
             required: true,
-            message: 'カテゴリを選択ください',
-            trigger: 'blur'
-          },
-          { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
-        ],
-        goods: [
-          {
-            required: true,
-            message: '商品値段を入力ください',
-            trigger: 'blur'
-          },
-          { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
-        ],
-        item: [
-          { required: true, message: '品目名を入力ください', trigger: 'blur' },
-          { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
-        ],
-        price: [
-          {
-            required: true,
-            message: '商品値段を入力ください',
+            message: '何人分を入力ください',
             trigger: 'change'
           },
-          { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
+          { min: 1, max: 50, message: '50桁数以内', trigger: 'blur' }
         ],
-        taxprice: [
+        rep_desp: [
           {
             required: true,
-            message: '税込値段を入力ください',
+            message: 'レシピ紹介文を入力ください',
             trigger: 'change'
           },
-          { min: 1, max: 12, message: '12桁数以内', trigger: 'blur' }
+          { min: 1, max: 200, message: '200桁数以内', trigger: 'blur' }
         ]
       }
     }
@@ -194,42 +155,41 @@ export default {
     this.getInit()
   },
   methods: {
+    hidePop() {
+      // 取消弹窗回调
+      this.popshow = false
+    },
+    submitPop() {
+      // 确认弹窗回调
+      this.popshow = false
+    },
+    rspGoodsWin(rspid) {
+      this.current_rspid = String(rspid)
+      this.popshow = true
+      this.poptitle = 'Huang liyan OK'
+    },
     itemUpdate: async function(id) {
+      // alert( 'id:' + id)
       this.visible = true
-      this.title = '品目更新'
+      this.title = 'レシピ更新'
       this.sub_button = '更新'
       this.form = {}
-      this.newCatData = this.catData
-      this.newGoodsData = this.goodsData
 
       var req = {
         mode: 'select',
         selectsql:
-          'select im.item_id as item_id,im.item_name as item_name,im.sales_rate as sales_rate,im.sales_type as sales_type,im.item_desp as item_desp,im.price as price,im.taxprice as taxprice, im.itemimg as itemimg,gd.goods_id as new_goods_id,gd.cat_id as new_cat_id from ns_item im left join ns_goods gd on gd.goods_id = im.goods_id where im.item_id = ' +
-          id +
-          " and im.delflg is null or im.delflg = '' and gd.delflg is null"
+          "select rsp_id, rsp_name, rep_desp, rsp_img, rsp_metial from ns_rsp where (delflg is null or delflg <> '1') and rsp_id=" + id
       }
       await this.axios
-        .post('http://13.112.112.160:8080/test/web.do', req)
+        .post(this.$baseUrl + '/web.do', req)
         .then(response => {
+          console.log('Before Update select OK')
           console.log(response.data)
           this.form = response.data.data[0]
         })
         .catch(response => {
-          console.log('Homepage getGoodsRsp  error!' + response)
+          console.log('Before Update select   error!' + response)
         })
-
-      this.new_cat_id = this.form.cat_id
-      this.newCatChanged()
-      this.new_goods_id = this.form.goods_id
-
-      this.checked = false
-      this.sale_show = false
-      console.log(this.hidden)
-      if (this.form.sales_type === 1) {
-        this.checked = true
-        this.sale_show = true
-      }
     },
     // 選択条件リセット
     reset: function() {
@@ -237,136 +197,29 @@ export default {
       this.goodsData = []
       this.goods_id = ''
     },
-    // セール率表示
-    rateShowToggle: function() {
-      if (this.checked) {
-        this.sale_show = true
-      } else {
-        this.sale_show = false
-      }
-    },
+
     // 品目検索
     search: async function() {
       var that = this
       console.log(this.saleTypes)
-      if (this.salesType === 0 || this.salesType === '') {
-        if (this.goods_id.length === 0 && this.cat_id.length === 0) {
-          this.getInit()
-        } else if (this.goods_id.length === 0 && this.cat_id !== '') {
-          var req1 = {
-            mode: 'select',
-            selectsql:
-              'select im.item_id as item_id,im.item_name as item_name,im.sales_rate as sales_rate,im.sales_type as sales_type, im.item_desp as item_desp,im.price as price,im.taxprice as taxprice, im.itemimg as itemimg,' +
-              'gd.goods_name as goods_name,ct.cat_name as cat_name from ns_item im left join ns_goods gd on gd.goods_id = im.goods_id left join ns_cat ct on ct.cat_id = gd.cat_id ' +
-              "where (im.delflg is null or im.delflg = '') and gd.delflg is null and gd.cat_id =" +
-              this.cat_id
-          }
-          await this.axios
-            .post('http://13.112.112.160:8080/test/web.do', req1)
-            .then(response => {
-              console.log(response.data)
-              that.newTableData = response.data.data
-            })
-            .catch(response => {
-              console.log('Homepage getGoodsRsp  error!' + response)
-            })
-        } else if (this.cat_id !== '' && this.goods_id !== '') {
-          var req2 = {
-            mode: 'select',
-            selectsql:
-              'select im.item_id as item_id,im.item_name as item_name,im.sales_rate as sales_rate,im.sales_type as sales_type,im.item_desp as item_desp,im.price as price,im.taxprice as taxprice, im.itemimg as itemimg,' +
-              'gd.goods_name as goods_name,ct.cat_name as cat_name from ns_item im left join ns_goods gd on gd.goods_id = im.goods_id left join ns_cat ct on ct.cat_id = gd.cat_id ' +
-              "where (im.delflg is null or im.delflg = '') and gd.delflg is null and im.goods_id =" +
-              this.goods_id
-          }
-          await this.axios
-            .post('http://13.112.112.160:8080/test/web.do', req2)
-            .then(response => {
-              console.log(response.data)
-              that.newTableData = response.data.data
-            })
-            .catch(response => {
-              console.log('Homepage getGoodsRsp  error!' + response)
-            })
-        } else {
-          this.newTableData = []
-        }
-      } else {
-        if (this.goods_id.length === 0 && this.cat_id.length === 0) {
-          var req3 = {
-            mode: 'select',
-            selectsql:
-              'select im.item_id as item_id,im.item_name as item_name,im.sales_rate as sales_rate,im.sales_type as sales_type,im.item_desp as item_desp,im.price as price,im.taxprice as taxprice, ' +
-              'im.itemimg as itemimg,gd.goods_name as goods_name,ct.cat_name as cat_name from ns_item im left join ns_goods gd on gd.goods_id = im.goods_id ' +
-              'left join ns_cat ct on ct.cat_id = gd.cat_id where im.sales_type = ' +
-              this.salesType +
-              " and im.delflg is null or im.delflg = '' and gd.delflg is null "
-          }
-          await this.axios
-            .post('http://13.112.112.160:8080/test/web.do', req3)
-            .then(response => {
-              console.log(response.data)
-              that.tableData = response.data.data
-            })
-            .catch(response => {
-              console.log('Homepage getGoodsRsp  error!' + response)
-            })
-          this._getInit()
-        } else if (this.goods_id.length === 0 && this.cat_id !== '') {
-          var req4 = {
-            mode: 'select',
-            selectsql:
-              'select im.item_id as item_id,im.item_name as item_name,im.sales_rate as sales_rate,im.sales_type as sales_type,im.item_desp as item_desp,im.price as price,im.taxprice as taxprice, im.itemimg as itemimg,' +
-              'gd.goods_name as goods_name,ct.cat_name as cat_name from ns_item im left join ns_goods gd on gd.goods_id = im.goods_id left join ns_cat ct on ct.cat_id = gd.cat_id where im.sales_type = ' +
-              this.salesType +
-              " and (im.delflg is null or im.delflg = '') and gd.delflg is null and gd.cat_id =" +
-              this.cat_id
-          }
-          await this.axios
-            .post('http://13.112.112.160:8080/test/web.do', req4)
-            .then(response => {
-              console.log(response.data)
-              that.tableData = response.data.data
-            })
-            .catch(response => {
-              console.log('Homepage getGoodsRsp  error!' + response)
-            })
-        } else if (this.cat_id !== '' && this.goods_id !== '') {
-          var req5 = {
-            mode: 'select',
-            selectsql:
-              'select im.item_id as item_id,im.item_name as item_name,im.sales_rate as sales_rate,im.sales_type as sales_type,im.item_desp as item_desp,im.price as price,im.taxprice as taxprice, im.itemimg as itemimg,' +
-              'gd.goods_name as goods_name,ct.cat_name as cat_name from ns_item im left join ns_goods gd on gd.goods_id = im.goods_id left join ns_cat ct on ct.cat_id = gd.cat_id where im.sales_type = ' +
-              this.salesType +
-              " and (im.delflg is null or im.delflg = '') and gd.delflg is null and im.goods_id =" +
-              this.goods_id
-          }
-          await this.axios
-            .post('http://13.112.112.160:8080/test/web.do', req5)
-            .then(response => {
-              console.log(response.data)
-              that.tableData = response.data.data
-            })
-            .catch(response => {
-              console.log('Homepage getGoodsRsp  error!' + response)
-            })
-          console.log(this.tableData)
-        } else {
-          this.newTableData = []
-        }
+
+      var req1 = {
+        mode: 'select',
+        selectsql:
+          "select rsp_id, rsp_name, rep_desp, rsp_img, rsp_metial from ns_rsp where delflg is null or delflg <> '1'"
       }
+      await this.axios
+        .post(this.$baseUrl + '/web.do', req1)
+        .then(response => {
+          console.log(response.data)
+          that.newTableData = response.data.data
+        })
+        .catch(response => {
+          console.log('Homepage getGoodsRsp  error!' + response)
+        })
+
       this.tableData = this.newTableData
-      // レジ金額再計算
-      for (var item in this.tableData) {
-        if (this.tableData[item].sales_type === 0) {
-          this.tableData[item].last_price = this.tableData[item].taxprice
-        } else {
-          this.tableData[item].last_price =
-            this.tableData[item].taxprice * this.tableData[item].sales_rate
-        }
-        console.log(this.tableData[item].last_price)
-      }
-      console.log(this.tableData)
+
       return this.tableData
     },
     catChanged: async function() {
@@ -378,7 +231,7 @@ export default {
           this.cat_id
       }
       await this.axios
-        .post('http://13.112.112.160:8080/test/web.do', req)
+        .post(this.$baseUrl + '/web.do', req)
         .then(response => {
           console.log(response.data)
           this.goodsData = response.data.data
@@ -389,40 +242,20 @@ export default {
 
       return this.goodsData
     },
-    newCatChanged: async function() {
-      this.new_goods_id = ''
-      console.log(this.new_cat_id)
-      var req = {
-        mode: 'select',
-        selectsql:
-          'select * from ns_goods where delflg is null and cat_id =' +
-          this.new_cat_id
-      }
-      await this.axios
-        .post('http://13.112.112.160:8080/test/web.do', req)
-        .then(response => {
-          console.log(response.data)
-          this.newGoodsData = response.data.data
-        })
-        .catch(response => {
-          console.log('Homepage getGoodsRsp  error!' + response)
-        })
-      return this.newGoodsData
-    },
     itemDelete: async function(id) {
       console.log(id)
       var req = {
         rscode: 'ok',
         mode: 'update',
-        tableName: 'ns_item',
-        wheresql: 'item_id =' + id,
+        tableName: 'ns_rsp',
+        wheresql: 'rsp_id =' + id,
         data: { delflg: '1' }
       }
       await this.axios
-        .post('http://13.112.112.160:8080/test/web.do', req)
+        .post(this.$baseUrl + '/web.do', req)
         .then(response => {})
         .catch(response => {
-          console.log('Homepage getGoodsRsp  error!' + response)
+          console.log('rsp delete error!' + response)
         })
       console.log(req)
       console.log('delete!')
@@ -433,21 +266,18 @@ export default {
       this.getInit()
       this.form = {}
 
-      this.newCatData = this.catData
-      this.newGoodsData = this.goodsData
-      this.new_cat_id = this.cat_id
-      this.new_goods_id = this.goods_id
       this.sub_button = '登録'
       this.title = '新規登録'
-      this.sale_show = false
-      this.checked = false
     },
     async tirggerFile(event) {
       const file = event.target.files[0]
       let param = new FormData() // 创建form对象
       param.append('file', file) // 通过append向form对象添加数据
+      param.append('imgpath', 'rsp') // 通过append向form对象添加数据
       this.formParam = param
       console.log(param.get('file')) // FormData私有类对象，访问不到，可以通过get判断值是否传进去
+      if (file) this.form.rsp_img = '[NEW FILE]'
+      else this.form.rsp_img = ''
       param = ''
     },
 
@@ -455,10 +285,10 @@ export default {
       var req1 = {
         mode: 'select',
         selectsql:
-          "select im.item_id as item_id,im.item_name as item_name,im.sales_rate as sales_rate,im.sales_type as sales_type,im.item_desp as item_desp,im.price as price,im.taxprice as taxprice, im.itemimg as itemimg,gd.goods_name as goods_name,ct.cat_name as cat_name from ns_item im left join ns_goods gd on gd.goods_id = im.goods_id left join ns_cat ct on ct.cat_id = gd.cat_id where im.delflg is null or im.delflg = '' and gd.delflg is null"
+          "select rsp_id, rsp_name, rep_desp, rsp_img, rsp_metial from ns_rsp where delflg is null or delflg <> '1'"
       }
       await this.axios
-        .post('http://13.112.112.160:8080/test/web.do', req1)
+        .post(this.$baseUrl + '/web.do', req1)
         .then(response => {
           console.log(response.data)
           this.tableData = response.data.data
@@ -467,14 +297,6 @@ export default {
           console.log('Homepage getGoodsRsp  error!' + response)
         })
 
-      for (var item in this.tableData) {
-        if (this.tableData[item].sales_type === 0) {
-          this.tableData[item].last_price = this.tableData[item].taxprice
-        } else {
-          this.tableData[item].last_price =
-            this.tableData[item].taxprice * this.tableData[item].sales_rate
-        }
-      }
       console.log(this.tableData)
       this._getInit()
       return this.tableData
@@ -482,10 +304,10 @@ export default {
     _getInit: async function() {
       var req2 = {
         mode: 'select',
-        selectsql: 'select * from ns_cat where delflg is null '
+        selectsql: "select * from ns_cat where (delflg is null or delflg <> '1') and leaf_flag='1'"
       }
       await this.axios
-        .post('http://13.112.112.160:8080/test/web.do', req2)
+        .post(this.$baseUrl + '/web.do', req2)
         .then(response => {
           console.log(response.data)
           this.catData = response.data.data
@@ -496,96 +318,92 @@ export default {
       return this.catData
     },
     onSubmit: async function(id) {
+      if (!this.form.rsp_name) {
+        alert('レシピ名を入力して下さい。')
+        return
+      }
+      if (!this.form.rsp_metial) {
+        alert('材料説明文を入力して下さい。')
+        return
+      }
+      if (!this.form.rep_desp) {
+        alert('レシピ紹介文を入力して下さい。')
+        return
+      }
+      if (!this.form.rsp_img) {
+        alert('レシピ画像をUPLOADして下さい。')
+        return
+      }
+      // rsp_img
+
       // 画像保存
       if (this.formParam !== '') {
+        console.log('Upload start!')
         await this.axios
           .post(
-            'http://13.112.112.160:8080/test/item-upload.do',
+            this.$baseUrl + '/image-upload.do',
             this.formParam
           )
           .then(response => {
             console.log('Upload success!')
             console.log(response.data)
-            this.form.itemimg = response.data.catimg_path
+            this.form.rsp_img = response.data.rsp_path
+            this.formParam = ''
           })
           .catch(response => {
             console.log('Upload error!' + response)
           })
       }
 
-      // セール状態判断
-      if (this.checked) {
-        this.sales_type = 1
-        this.sales_rate = this.form.sales_rate
-      } else {
-        this.sales_type = 0
-        this.sales_rate = null
-      }
-      // 品目更新
+      // レシピ更新
       if (id) {
         var req = {
           rscode: 'ok',
           mode: 'update',
-          tableName: 'ns_item',
-          wheresql: 'item_id =' + id,
+          tableName: 'ns_rsp',
+          wheresql: 'rsp_id =' + id,
           data: {
-            item_name: this.form.item_name,
-            goods_id: this.new_goods_id,
-            item_desp: this.form.item_desp,
-            sales_rate: this.sales_rate,
-            sales_type: this.sales_type,
-            price: this.form.price,
-            taxprice: this.form.taxprice,
-            itemimg: this.form.itemimg
+            rsp_name: this.form.rsp_name,
+            rep_desp: this.form.rep_desp,
+            rsp_img: this.form.rsp_img,
+            rsp_metial: this.form.rsp_metial
           }
         }
         console.log(req)
         await this.axios
-          .post('http://13.112.112.160:8080/test/web.do', req)
-          .then(response => {})
+          .post(this.$baseUrl + '/web.do', req)
+          .then(response => {
+
+          })
           .catch(response => {
-            console.log('Homepage getGoodsRsp  error!' + response)
+            console.log('Rsp Upate error!' + response)
           })
         console.log('update!')
         this.visible = false
       } else {
-        // 品目新規
-        var formData = new FormData()
-        formData.append('path', '')
-        await this.axios
-          .post('http://13.112.112.160:8080/test/item-upload.do', formData)
-          .then(response => {
-            console.log(response.data)
-            this.itemimg = response.data.data
-          })
-          .catch(response => {
-            console.log('Homepage getGoodsRsp  error!' + response)
-          })
-        console.log(this.itemimg)
+        // レシピ新規
+        // var formData = new FormData()
+
         var req2 = {
           mode: 'insert',
-          tableName: 'ns_item',
+          tableName: 'ns_rsp',
           data: {
-            item_name: this.form.item_name,
-            goods_id: this.new_goods_id,
-            item_desp: this.form.item_desp,
-            sales_rate: this.sales_rate,
-            sales_type: this.sales_type,
-            price: this.form.price,
-            taxprice: this.form.taxprice,
-            itemimg: this.itemimg
+            rsp_name: this.form.rsp_name,
+            rep_desp: this.form.rep_desp,
+            rsp_img: this.form.rsp_img,
+            rsp_metial: this.form.rsp_metial
           }
         }
 
         await this.axios
-          .post('http://13.112.112.160:8080/test/web.do', req2)
+          .post(this.$baseUrl + '/web.do', req2)
           .then(response => {
+            console.log('add rsp ok.')
             console.log(response.data)
           })
           .catch(response => {
-            console.log('Homepage getGoodsRsp  error!' + response)
+            console.log('add rsp error!' + response)
           })
-        console.log('submit!')
       }
 
       this.visible = false
