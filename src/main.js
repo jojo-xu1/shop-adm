@@ -39,7 +39,7 @@ Vue.use(Contextmenu)
 //   mockXHR()
 // }
 
-Vue.prototype.$baseUrl = process.env.NODE_ENV === 'production' ? 'http://13.112.112.160:8081/test/' : 'http://13.112.112.160:8080/test/'
+Vue.prototype.$webUrl = process.env.NODE_ENV === 'production' ? 'http://13.112.112.160' : 'http://13.112.112.160/test'
 
 Vue.prototype.$baseUrl = process.env.NODE_ENV === 'production' ? 'http://13.112.112.160:9080/test' : 'http://13.112.112.160:8080/test'
 
