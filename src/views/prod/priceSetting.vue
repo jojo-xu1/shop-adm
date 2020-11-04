@@ -3,7 +3,7 @@
     <div class="setMain">
       <div style="width:75%">
         <!--<img id="prod" :src="'http://13.112.112.160/shopping/upimg/'+imageList[current].catimg_path" alt=""  width="100%" >-->
-        <div v-show="showFlag" id="imgbox" class="imgbox" :style="{'background-image': 'url(' + 'http://13.112.112.160/shopping/upimg/' + imageList[current].catimg_path + ')'}">
+        <div v-show="showFlag" id="imgbox" class="imgbox" :style="{'background-image': 'url(' + this.$webUrl + '/shopping/upimg/' + imageList[current].catimg_path + ')'}">
           <VueDragResize
             v-for="(lbl, key) in curLbls"
             :key="key"

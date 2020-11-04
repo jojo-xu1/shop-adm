@@ -25,7 +25,7 @@
     <br>
     <el-button type="primary" @click="search">检索</el-button>
     <el-button type="info" @click="reset">リセット</el-button>
-
+    <el-button type="primary" @click="itemInsert">新規登録</el-button>
     <el-table :data="tableData" style="width: 100%">
       <el-table-column label="品目ID" width="75">
         <template slot-scope="scope">
@@ -55,7 +55,7 @@
       </el-table-column>
     </el-table>
     <div>
-      <el-button type="primary" @click="itemInsert">新規登録</el-button>
+
       <el-dialog :title="title" :close-on-click-modal="false" :visible.sync="visible">
         <el-form ref="form" :model="form" label-width="80px">
           <el-form-item label="カテゴリ" prop="cat">
@@ -96,7 +96,8 @@
             <el-input v-model="form.item_desp" prop="textarea" />
           </el-form-item>
           <el-form-item label="画像URL">
-            <el-input v-model="form.itemimg" prop="itemimg" />
+            <el-input v-model="form.itemimg" />
+            <el-input v-model="form.rsp_img" />
             <div class="file_box">
               <span class="upload">
                 <input
@@ -107,7 +108,7 @@
                   @change="tirggerFile($event)"
                 >
 
-                <img :src="form.imgURL" alt>
+                <img :src="form.itemimg" alt>
               </span>
             </div>
           </el-form-item>
@@ -420,6 +421,9 @@ export default {
       param.append('imgpath', 'item')
       this.formParam = param
       console.log(param.get('file')) // FormData私有类对象，访问不到，可以通过get判断值是否传进去
+      if (file) this.form.itemimg = '[NEW FILE]'
+      else this.form.itemimg = ''
+      console.log('filename:', this.form.itemimg) // FormData私有类对象，访问不到，可以通过get判断值是否传进去
     },
     getInit: async function() {
       this.reset()
@@ -473,6 +477,23 @@ export default {
       return this.catData
     },
     onSubmit: async function(id) {
+      if (!this.form.item_name) {
+        alert('品目名を入力して下さい。')
+        return
+      }
+      if (!this.form.item_desp) {
+        alert('説明文を入力して下さい。')
+        return
+      }
+      if (!this.form.price) {
+        alert('価格を入力して下さい。')
+        return
+      }
+      if (!this.form.itemimg) {
+        alert('画像をUPLOADして下さい。')
+        return
+      }
+
       // 画像保存
       console.log('打印formdate打印' + this.formParam)
       if (this.formParam !== '') {

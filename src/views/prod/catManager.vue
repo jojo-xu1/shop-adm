@@ -55,12 +55,12 @@
               <select
                 id="selected"
                 style="
-              background: white;
-              height: 35px;
-              border-radius: 4px;
-              border: 1px solid black;
-              color: black;
-            "
+                  background: white;
+                  height: 35px;
+                  border-radius: 4px;
+                  border: 1px solid black;
+                  color: black;
+                "
               >
                 <option value="">leaf_flag</option>
                 <option value="0">0</option>
@@ -76,13 +76,14 @@
                   <tr>
                     <td scope="col">Id</td>
                     <td scope="col">カテゴリ</td>
+                    <td scope="col">leaf_flag</td>
                   </tr>
                 </thead>
                 <draggable v-model="list" tag="tbody">
                   <tr v-for="item in list" :key="item.cat_name">
                     <td scope="row">{{ item.cat_id }}</td>
                     <td><el-link type="primary" @click="setlist(item.cat_id,0)">{{ item.cat_name }}</el-link></td>
-
+                    <td scope="row">{{ item.leaf_flag }}</td>
                     <td>
                       <el-button size="mini" @click="catUp(item.cat_id)">↑</el-button>
                     </td>
@@ -90,7 +91,7 @@
                       <el-button size="mini" @click="catDown(item.cat_id)">↓</el-button>
                     </td>
                     <td>
-                      <el-button size="mini" @click="catUpdate(item.cat_id)">変更</el-button>
+                      <el-button size="mini" @click="catUpdate(item.cat_id,item.cat_name)">変更</el-button>
                     </td>
                     <td>
                       <el-button
@@ -165,7 +166,7 @@ export default {
     async refresh(parent_id) {
       var req = {
         'mode': 'select',
-        'selectsql': 'select cat_id, cat_name, parent_id from ns_cat where parent_id= ' + parent_id + ' and (delflg=0 or delflg is null)'
+        'selectsql': 'select cat_id, cat_name, parent_id,leaf_flag from ns_cat where parent_id= ' + parent_id + ' and (delflg=0 or delflg is null)'
       }
       await this.axios.post(this.$baseUrl + '/web.do', req).then((response) => {
         console.log(response.data)
@@ -195,7 +196,7 @@ export default {
       var cat = {}
       cat.parent_id = this.currentid
       cat.cat_name = document.getElementById('new-todo').value
-      cat.leaf_flag = document.getElementById('selected').value
+      cat.leaf_flag = !!document.getElementById('selected').value
       var data = {}
       data.mode = 'insert'
       data.tableName = 'ns_cat'
@@ -220,58 +221,65 @@ export default {
       }
     },
     catUpdate(id, name) {
-      this.$prompt('カテゴリ名を入力してください', '変更', {
+      this.$prompt('カテゴリ名を入力してください', name, {
         confirmButtonText: '確認',
         cancelButtonText: 'キャンセル'
       }).then(async({ value }) => {
-        this.$message({
-          type: 'success',
-          message: 'カテゴリを変更しました '
-        })
-        var resolve = ''
-        var that = this
-        var req = {
-          rscode: 'ok',
-          mode: 'update',
-          tableName: 'ns_cat',
-          wheresql: 'cat_id =' + id,
-          data: { cat_name: value }
-        }
-        await this.axios
-          .post(this.$baseUrl + '/web.do', req)
-          .then(response => {
-            var req = {
-              'mode': 'select',
-              'selectsql': 'select cat_id, cat_name, parent_id,leaf_flag from ns_cat where delflg=0 or delflg is null'
-            }
+        var newName = value
+        this.$prompt('leaf_flagを0か１で入力してください', name, {
+          confirmButtonText: '確認',
+          cancelButtonText: 'キャンセル'
+        }).then(async({ value }) => {
+          var newFlag = value
+          this.$message({
+            type: 'success',
+            message: 'カテゴリを変更しました '
+          })
+          var resolve = ''
+          var that = this
+          var req = {
+            rscode: 'ok',
+            mode: 'update',
+            tableName: 'ns_cat',
+            wheresql: 'cat_id =' + id,
+            data: { cat_name: newName, leaf_flag: newFlag }
+          }
+          await this.axios
+            .post(this.$baseUrl + '/web.do', req)
+            .then(response => {
+              var req = {
+                'mode': 'select',
+                'selectsql': 'select cat_id, cat_name, parent_id,leaf_flag from ns_cat where delflg=0 or delflg is null'
+              }
 
-            this.axios.post(this.$baseUrl + '/web.do', req).then((response) => {
-              console.log(response.data)
-              this.listall = response.data.data
-            }).catch((response) => {
-              console.log(response)
+              this.axios.post(this.$baseUrl + '/web.do', req).then((response) => {
+                console.log(response.data)
+                this.listall = response.data.data
+              }).catch((response) => {
+                console.log(response)
+              })
+              this.refresh(this.currentid)
+              that.setlist(this.currentid, 1)
+              console.log('update!', this.currentid)
             })
-            this.refresh(this.currentid)
-            that.setlist(this.currentid, 1)
-            console.log('update!', this.currentid)
-          })
-          .catch(response => {
-            console.log('Homepage getGoodsRsp  error!' + response)
-          })
-        console.log(req)
-        console.log('update!')
-        return resolve(this.getnode(0))
+            .catch(response => {
+              console.log('Homepage getGoodsRsp  error!' + response)
+            })
+          console.log(req)
+          console.log('update!')
+          return resolve(this.getnode(0))
+        })
       })
     },
     catDelete(id, name) {
-      this.$confirm('カテゴリを削除しますか？', '確認', {
+      this.$confirm(name + 'を削除しますか？', '確認', {
         confirmButtonText: '確認',
         cancelButtonText: 'キャンセル',
         type: 'warning'
       }).then(async() => {
         this.$message({
           type: 'success',
-          message: '削除しました！'
+          message: name + 'を削除しました！'
         })
         var resolve = ''
         var that = this

@@ -45,7 +45,7 @@
       :visible.sync="dialogVisible"
       width="50%"
     >
-      <div id="imgbox" class="el-dialog-div" :style="{'background-image': 'url(' + 'http://13.112.112.160/shopping/upimg/' + imgPath + ')'}" />
+      <div id="imgbox" class="el-dialog-div" :style="{'background-image': 'url(' + this.$webUrl + '/shopping/upimg/' + imgPath + ')'}" />
     </el-dialog>
     <el-dialog
       title="画像を選択"
