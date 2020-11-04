@@ -153,7 +153,7 @@ export default {
           console.log('Before Update select   error!' + response)
         })
       this.title = rsp.rsp_name
-      rsp.rsp_img = this.$imgUrl + '/shopping/upimg/' + rsp.rsp_img
+      rsp.rsp_img = this.$webUrl + '/shopping/upimg/' + rsp.rsp_img
 
       // 材料明細取得
       req = {

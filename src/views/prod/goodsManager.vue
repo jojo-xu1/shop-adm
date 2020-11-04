@@ -445,7 +445,7 @@ export default {
       console.log('goodsid', goods_id)
     },
     async onSubmit() {
-      this.visible = false
+      this.editvisible = false
       console.log('SubmitTest:goods_id=', this.form.goods_id)
       var goods_name = {}
       goods_name.goods_name = this.form.goods_name
