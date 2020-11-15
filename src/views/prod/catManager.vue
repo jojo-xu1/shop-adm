@@ -52,6 +52,7 @@
                 style="height:35px;magin-left:5px"
                 placeholder="カテゴリ名"
               >
+              leaf_flag:
               <select
                 id="selected"
                 style="
@@ -62,7 +63,7 @@
                   color: black;
                 "
               >
-                <option value="0">leaf_flag</option>
+                <!--<option value="0">leaf_flag</option>-->
                 <option value="0">0</option>
                 <option value="1">1</option>
               </select>
@@ -83,7 +84,7 @@
                   <tr v-for="item in list" :key="item.cat_name">
                     <td scope="row">{{ item.cat_id }}</td>
                     <td><el-link type="primary" @click="setlist(item.cat_id,0)">{{ item.cat_name }}</el-link></td>
-                    <td scope="row">{{ item.leaf_flag ?1:0 }}</td>
+                    <td scope="row">{{ item.leaf_flag==true ?1:0 }}</td>
                     <td>
                       <el-button size="mini" @click="catUp(item.cat_id)">↑</el-button>
                     </td>
@@ -214,7 +215,7 @@ export default {
           that.listall.push(data)
           that.setlist(that.currentid, 1)
           document.getElementById('new-todo').value = ''
-          document.getElementById('selected').value = 'leaf_flag'
+          document.getElementById('selected').value = '0'
         })
       } else {
         alert('カテゴリを所属する商品がありますので、子カテゴリの新規作成はできません')
@@ -333,6 +334,8 @@ export default {
         if (parent_id === this.listall[prop].parent_id) { this.list.push(this.listall[prop]) }
         console.log(this.listall[prop])
       }
+      document.getElementById('new-todo').value = ''
+      document.getElementById('selected').value = '0'
     },
     setbreadlist(parent_id) {
       var temp = []
