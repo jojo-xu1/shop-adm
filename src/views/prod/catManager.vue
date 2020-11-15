@@ -83,7 +83,7 @@
                   <tr v-for="item in list" :key="item.cat_name">
                     <td scope="row">{{ item.cat_id }}</td>
                     <td><el-link type="primary" @click="setlist(item.cat_id,0)">{{ item.cat_name }}</el-link></td>
-                    <td scope="row">{{ item.leaf_flag }}</td>
+                    <td scope="row">{{ item.leaf_flag ?1:0 }}</td>
                     <td>
                       <el-button size="mini" @click="catUp(item.cat_id)">↑</el-button>
                     </td>
