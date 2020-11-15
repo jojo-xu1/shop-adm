@@ -55,7 +55,6 @@
       </el-table-column>
     </el-table>
     <div>
-
       <el-dialog :title="title" :close-on-click-modal="false" :visible.sync="visible">
         <el-form ref="form" :model="form" label-width="80px">
           <el-form-item label="カテゴリ" prop="cat">
@@ -97,7 +96,7 @@
           </el-form-item>
           <el-form-item label="画像URL">
             <el-input v-model="form.itemimg" />
-            <el-input v-model="form.rsp_img" />
+
             <div class="file_box">
               <span class="upload">
                 <input
@@ -114,7 +113,7 @@
           </el-form-item>
           <el-form-item>
             <el-button type="primary" @click="onSubmit(form.item_id)">{{ sub_button }}</el-button>
-            <el-button @click="visible = false">キャンセル</el-button>
+            <el-button @click="insertCencle()">キャンセル</el-button>
           </el-form-item>
         </el-form>
       </el-dialog>
@@ -332,8 +331,13 @@ export default {
         if (this.tableData[item].sales_type === 0) {
           this.tableData[item].last_price = this.tableData[item].taxprice
         } else {
-          this.tableData[item].last_price =
-            this.tableData[item].taxprice * this.tableData[item].sales_rate
+          var temp = this.tableData[item].taxprice * this.tableData[item].sales_rate
+          var temp1 = temp.toString().indexOf('.')
+          if (temp1 > 0) {
+            this.tableData[item].last_price = temp.toString().substring(0, temp1)
+          } else {
+            this.tableData[item].last_price = temp
+          }
         }
       }
       console.log(this.tableData)
@@ -446,8 +450,13 @@ export default {
         if (this.tableData[item].sales_type === 0) {
           this.tableData[item].last_price = this.tableData[item].taxprice
         } else {
-          this.tableData[item].last_price =
-            this.tableData[item].taxprice * this.tableData[item].sales_rate
+          var temp = this.tableData[item].taxprice * this.tableData[item].sales_rate
+          var temp1 = temp.toString().indexOf('.')
+          if (temp1 > 0) {
+            this.tableData[item].last_price = temp.toString().substring(0, temp1)
+          } else {
+            this.tableData[item].last_price = temp
+          }
         }
       }
       console.log(this.tableData)
@@ -471,10 +480,16 @@ export default {
         })
       // for(prat in this.preCatData){
       //   if(prat.parent_id ===0){
-      //     this.catData.add(prat);
+      //     this.catData.add(prat)
       //   }
       // }
       return this.catData
+    },
+    insertCencle: function() {
+      this.visible = false
+      this.formParam = ''
+      var obj = document.getElementById('imgUpload')
+      obj.value = ''
     },
     onSubmit: async function(id) {
       if (!this.form.item_name) {
