@@ -5,7 +5,7 @@
         <div class="grid-content bg-purple">
           <div id="todo-list-example">
             <form>
-              <button style="background:white;height:35px;border-radius:4px;border:1px solid;margin:10px" @click="openUpload()">画像アップロード</button>
+              <button style="background:white;height:35px;border-radius:4px;border:1px solid;margin:10px" :disabled="leafFlag == '0'" @click="openUpload()">画像アップロード</button>
               <el-divider />
             </form>
             <div v-if="imageList.length>0" class="row">
@@ -112,6 +112,7 @@ export default {
         label: 'cat_name'
       },
       catId: 0,
+      leafFlag: '0',
       imageList: [
         { catimg_id: '', catimg_path: '', cat_id: '' }
       ],
@@ -134,7 +135,7 @@ export default {
       if (node.level === 0) {
         var req = {
           'mode': 'select',
-          'selectsql': 'select cat_id, cat_name, parent_id from ns_cat'
+          'selectsql': 'select cat_id, cat_name, parent_id, leaf_flag from ns_cat where delflg is null or delflg <> 1'
         }
         await this.axios.post(this.$baseUrl + '/web.do', req).then((response) => {
           console.log(response.data)
@@ -158,6 +159,7 @@ export default {
         console.log('node.cat_id:' + node.cat_id)
         this.getImagesList(node.cat_id)
       }
+      this.leafFlag = node.leaf_flag
     },
     async getImagesList(cat_id) {
       this.imageList = []

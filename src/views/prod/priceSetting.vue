@@ -15,7 +15,7 @@
             @dragstop="onDragstopExist($event,lbl.index)"
           >
             <div v-if="lbl.delflg==null">
-              <img :src="tagimg" alt="" class="tags" draggable="false" οndragstart="return false" @contextmenu.prevent="onContextmenuExist($event,lbl.index)">
+              <img :src="$webUrl +'/shopping/upimg/' + getLblImg(lbl.sales_type)" alt="" class="tags" draggable="false" οndragstart="return false" @contextmenu.prevent="onContextmenuExist($event,lbl.index)">
               <span class="fl" @contextmenu.prevent="onContextmenuExist($event,lbl.index)">{{ lbl.goods_name }}</span>
             </div>
           </VueDragResize>
@@ -52,7 +52,7 @@
               <el-button type="success" @click="addTag">タグ追加</el-button>
             </el-form-item>
             <el-form-item>
-              <el-button type="warning" @click="onSubmit('this')">確認する</el-button>
+              <el-button type="warning" @click="onSubmit('this')">保存する</el-button>
             </el-form-item>
           </el-form>
         </div>
@@ -140,6 +140,7 @@ export default {
         { sales_type: 3, lbl_name: '10％割引' },
         { sales_type: 4, lbl_name: 'ポイント5倍' }
       ],
+      lbltypelist: [],
       defaultProps: {
         label: 'cat_name',
         isLeaf: 'leaf'
@@ -165,6 +166,20 @@ export default {
     }
   },
   mounted: function() {
+    // ラベル画像取得
+    // lbltypelist:[{sales_type:'',lbl_path:'',lbl_name:''}],
+    var sql = 'select distinct sales_type, lbl_path, lbl_name'
+    sql += ' from ns_label_img'
+    sql += " where (delflg is null or delflg <> '1') "
+    var req = {
+      'mode': 'select',
+      'selectsql': sql
+    }
+    this.axios.post(this.$baseUrl + '/web.do', req).then((response) => {
+      this.lbltypelist = response.data.data
+    }).catch((response) => {
+      console.log('lbltypelist  error!' + response)
+    })
   },
   methods: {
     async loadNode(node, resolve) {
@@ -172,7 +187,7 @@ export default {
       if (node.level === 0) {
         var req = {
           'mode': 'select',
-          'selectsql': 'select cat_id, cat_name, parent_id from ns_cat'
+          'selectsql': 'select cat_id, cat_name, parent_id from ns_cat where delflg is null or delflg <> 1'
         }
         await this.axios.post(this.$baseUrl + '/web.do', req).then((response) => {
           console.log(response.data)
@@ -661,6 +676,15 @@ export default {
       }).catch((response) => {
         console.log('Insert error!' + response)
       })
+    },
+    getLblImg(sales_type) {
+      var nImg = 'lbl/tag.gif'
+      for (var i in this.lbltypelist) {
+        if (this.lbltypelist[i].sales_type === sales_type) {
+          nImg = this.lbltypelist[i].lbl_path
+        }
+      }
+      return nImg
     }
   }
 }
