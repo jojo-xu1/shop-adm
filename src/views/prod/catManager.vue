@@ -62,7 +62,7 @@
                   color: black;
                 "
               >
-                <option value="">leaf_flag</option>
+                <option value="0">leaf_flag</option>
                 <option value="0">0</option>
                 <option value="1">1</option>
               </select>
@@ -196,7 +196,7 @@ export default {
       var cat = {}
       cat.parent_id = this.currentid
       cat.cat_name = document.getElementById('new-todo').value
-      cat.leaf_flag = !!document.getElementById('selected').value
+      cat.leaf_flag = document.getElementById('selected').value
       var data = {}
       data.mode = 'insert'
       data.tableName = 'ns_cat'
@@ -214,7 +214,7 @@ export default {
           that.listall.push(data)
           that.setlist(that.currentid, 1)
           document.getElementById('new-todo').value = ''
-          document.getElementById('selected').value = ''
+          document.getElementById('selected').value = 'leaf_flag'
         })
       } else {
         alert('カテゴリを所属する商品がありますので、子カテゴリの新規作成はできません')
