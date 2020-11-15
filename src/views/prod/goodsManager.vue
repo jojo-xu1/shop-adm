@@ -296,7 +296,7 @@ export default {
         var req = {
           mode: 'select',
           selectsql:
-            'select cat_id, cat_name, parent_id, leaf_flag from ns_cat'
+            'select cat_id, cat_name, parent_id, leaf_flag from ns_cat where delflg <> 1 or delflg is null'
         }
         await this.axios
           .post(this.$baseUrl + '/web.do', req)
