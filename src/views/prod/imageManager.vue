@@ -4,10 +4,7 @@
       <el-col :span="16">
         <div class="grid-content bg-purple">
           <div id="todo-list-example">
-            <form>
-              <button style="background:white;height:35px;border-radius:4px;border:1px solid;margin:10px" :disabled="leafFlag == '0'" @click="openUpload()">画像アップロード</button>
-              <el-divider />
-            </form>
+            <button style="background:white;height:35px;border-radius:4px;border:1px solid;margin:10px" :disabled="leafFlag == '0'" @click="openUpload()">画像アップロード</button>
             <div v-if="imageList.length>0" class="row">
               <table class="table-striped">
                 <thead class="thead-dark">
@@ -226,6 +223,7 @@ export default {
         alert('Please select an image file')
         return
       }
+      this.imgSrc = ''
       if (typeof FileReader === 'function') {
         const reader = new FileReader()
         reader.onload = event => {
