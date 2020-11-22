@@ -17,46 +17,13 @@
             "
           >
             <a
-              :href="
-                this.$baseUrl +
-                  '/downloadcsv?sql=select g.cat_id, g.goods_name, g.goods_id, c.cat_name, c.leaf_flag from ns_goods g left join ns_cat c on g.cat_id = c.cat_id where g.delflg is null or g.delflg <> 1'
-              "
+              :href="this.$baseUrl + '/downloadcsv?sql=select g.cat_id, g.goods_name, g.goods_id, c.cat_name, c.leaf_flag from ns_goods g left join ns_cat c on g.cat_id = c.cat_id where g.delflg is null or g.delflg <> 1'"
             >
               <i class="el-icon-download" />
               CSVダウンロード
             </a>
           </button>
-
-          <!-- <button
-              style="
-                background: white;
-                height: 35px;
-                border-radius: 4px;
-                border: 1px solid;
-              "
-              @click="handleDownload()"
-            > <i class="el-icon-download" />
-              CSVダウンロード
-
-            </button> -->
         </div>
-        <!-- <button
-          style="
-            background: white;
-            height: 35px;
-            border-radius: 4px;
-            border: 1px solid;
-          "
-          type="file"
-          ref="upload"
-          @click="uploadHandle"
-        >
-          <i class="el-icon-upload"> CSVアップロード</i>
-        </button> -->
-        <!--
-===========================================================
- -->
-
         <div style="float: left">
           <el-button
             slot="trigger"
@@ -79,6 +46,7 @@
           :visible.sync="uploadvisible"
           width="30%"
           :close-on-click-modal="false"
+          :before-close="handleClose"
         >
           <el-upload
             ref="upload"
@@ -103,35 +71,6 @@
             <div slot="tip" class="el-upload__tip">Only CSV File</div>
           </el-upload>
         </el-dialog>
-
-        <!-- <div style="float: left">
-          <el-upload
-            ref="upload"
-            action=""
-            data=""
-            :file-list="fileList"
-            :on-preview="handlePreview"
-            :show-file-list="false"
-          >
-            <el-button
-              slot="trigger"
-              size="small"
-              style="
-                background: white;
-                height: 35px;
-                border-radius: 4px;
-                border: 1px solid black;
-                color: black;
-              "
-            >
-              <i class="el-icon-upload"> CSVアップロード</i>
-            </el-button>
-          </el-upload>
-        </div> -->
-
-        <!--
-===========================================================
- -->
       </div>
     </div>
     <el-row :gutter="15">
@@ -152,6 +91,7 @@
                   border: 1px solid;
                   margin: 10px;
                 "
+                :disabled="leafFlag == '0'"
                 @click="addGoods"
               >
                 新規作成
@@ -244,7 +184,7 @@
           <el-input v-model="form.goods_name" />
         </el-form-item>
         <el-form-item>
-          <el-button @click="editvisible = false">キャンセル</el-button>
+          <el-button @click="visible = false">キャンセル</el-button>
           <el-button type="primary" @click="onSubmit">登録</el-button>
         </el-form-item>
       </el-form>
@@ -275,6 +215,7 @@ export default {
       editvisible: false,
       uploadvisible: false,
       fileList: [],
+      leafFlag: 0,
       defaultProps: {
         // children: 'children',
         label: 'cat_name'
@@ -293,7 +234,6 @@ export default {
     handlePreview(file) {
       console.log(file)
     },
-    // tree加载
     async loadNode(node, resolve) {
       console.log('loadtest')
       if (node.level === 0) {
@@ -319,12 +259,11 @@ export default {
       // console.log("123");
       return resolve(this.getnode(node.data.cat_id))
     },
-    // 刷新载入页面
     async reFresh() {
       var reqlist = {
         mode: 'select',
         selectsql:
-          " select g.cat_id, g.goods_name, g.goods_id, c.cat_name, c.leaf_flag from ns_goods g left join ns_cat c on g.cat_id = c.cat_id where g.delflg is null or g.delflg <> '1' "
+          " select g.cat_id, g.goods_name, g.goods_id, c.cat_name, c.leaf_flag from ns_goods g left join ns_cat c on g.cat_id = c.cat_id where (g.delflg is null or g.delflg <> '1') and g.cat_id <> -1"
       }
       await this.axios
         .post(this.$baseUrl + '/web.do', reqlist)
@@ -347,7 +286,7 @@ export default {
         'http://netengine.sakura.ne.jp/event-ec/shopadm/setting/shop/csv/5'
       )
     },
-    // upload csv file弹出框
+
     handleUpload() {
       // console.log(this.msg)
       this.uploadvisible = true
@@ -358,45 +297,14 @@ export default {
         // 回调函数
       })
     },
-    // handleRemove(file, fileList) {
-    //   console.log(file, fileList)
-    // },
-    // handlePreview(file) {
-    //   console.log(file)
-    // },
-    // handleDownload() {
-    //   this.axios
-    //     .get("http://13.112.112.160:8080/test/downloadcsv?sql=select cat_id, goods_name, goods_id from ns_goods")
-    //     .then((response) => {
-    //       console.log(response)
-    //     })
-    //     .catch((response) => {
-
-    //     });
-    // },
-    // handleDownload() {
-    //   this.axios({
-    //     url:
-    //       'http://13.112.112.160:8080/test/downloadcsv?sql=select cat_id, goods_name, goods_id from ns_goods', // 接口名字
-    //     method: 'get',
-    //     params: {},
-    //     responseType: 'blob'
-    //   }).then(function(response) {
-    //     const blob = new Blob([response.data], {
-    //       type:
-    //         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8'
-    //     })
-    //     const aEle = document.createElement('a') // 创建a标签
-    //     const href = window.URL.createObjectURL(blob) // 创建下载的链接
-    //     aEle.href = href
-    //     aEle.download = execlName // 下载后文件名
-    //     document.body.appendChild(aEle)
-    //     aEle.click() // 点击下载
-    //     document.body.removeChild(aEle) // 下载完成移除元素
-    //     window.URL.revokeObjectURL(href) // 释放掉blob对象
-    //   })
-    // },
-    // 新增商品
+    handleClose(done) {
+      this.$confirm('CSVアップロードやめますか')
+        .then(_ => {
+          this.fileList = []
+          done()
+        })
+        .catch(_ => {})
+    },
     addGoods() {
       var goods = {}
       goods.cat_id = this.currentid
@@ -406,18 +314,19 @@ export default {
       data.tableName = 'ns_goods'
       data.data = goods
       var that = this
-      this.axios.post(this.$baseUrl + '/web.do', data).then(function(resp) {
-        //  console.log("resp信息：", resp);
-        var data = {}
-        data.goods_id = resp.data.data
-        data.cat_id = that.currentid
-        data.goods_name = goods.goods_name
-        that.goodslist.push(data)
-        data.cat_name = that.currentname
-        that.setlist(that.currentid)
-        document.getElementById('new-todo').value = ''
-      })
-      // 修改为叶节点
+      this.axios
+        .post(this.$baseUrl + '/web.do', data)
+        .then(function(resp) {
+          //  console.log("resp信息：", resp);
+          var data = {}
+          data.goods_id = resp.data.data
+          data.cat_id = that.currentid
+          data.goods_name = goods.goods_name
+          that.goodslist.push(data)
+          data.cat_name = that.currentname
+          that.setlist(that.currentid)
+        })
+      document.getElementById('new-todo').value = ''
       // var leaf_flag = {}
       // leaf_flag.leaf_flag = 1
       // var dataleaf = {}
@@ -434,7 +343,6 @@ export default {
       //     data.leaf_flag = leaf_flag
       //   })
     },
-    // 编辑商品名
     handleEdit(goods_id) {
       this.editvisible = true
       this.form.goods_id = goods_id
@@ -462,7 +370,6 @@ export default {
       console.log('crid', this.currentid)
       this.setlist(this.currentid)
     },
-    // 删除商品
     async handleDelete(goods_id) {
       console.log('delTEST')
       this.$confirm('商品を削除しますか？', '確認', {
@@ -495,12 +402,10 @@ export default {
       })
     },
     addNewTodo() {},
-    // 显示allgoods
     setAllgoods() {
       //  console.log("AllgoodsTest")
       this.list = this.goodslist
     },
-    // 显示分类
     setlist(cat_id) {
       //  console.log("setlist测试");
       this.list = []
@@ -514,6 +419,7 @@ export default {
       //  console.log("当前表", this.list);
       console.log('list', this.list)
     },
+
     getnode(parent_id) {
       var nlist = []
       for (var prop in this.treelist) {
@@ -529,7 +435,6 @@ export default {
     // nodeKeytest() {
     //   console.log('node:', node - key)
     // },
-    // 点击tree节点
     handleNodeClick(node, data, value) {
       // if (node.parent_id !== 0 || node.cat_id !== node.parent_id) {
       console.log('nodeclick:', node)
@@ -540,10 +445,12 @@ export default {
         // console.log("data:", data);
         // console.log("value:", value);
         this.currentname = node.cat_name
+
         this.currentid = node.cat_id
         this.setlist(node.cat_id)
         //  console.log("currentname", this.currentname);
       }
+      this.leafFlag = node.leaf_flag
     }
   }
 }
