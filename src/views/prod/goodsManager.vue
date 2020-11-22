@@ -184,7 +184,7 @@
           <el-input v-model="form.goods_name" />
         </el-form-item>
         <el-form-item>
-          <el-button @click="visible = false">キャンセル</el-button>
+          <el-button @click="editvisible = false">キャンセル</el-button>
           <el-button type="primary" @click="onSubmit">登録</el-button>
         </el-form-item>
       </el-form>
@@ -193,8 +193,6 @@
 </template>
 
 <script>
-// import { node } from 'clipboard'
-
 import draggable from 'vuedraggable'
 export default {
   name: 'GoodsManager',
