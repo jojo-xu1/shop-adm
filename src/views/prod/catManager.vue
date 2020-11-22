@@ -140,7 +140,9 @@ export default {
         label: 'cat_name'
 
       },
-      count: 1
+      count: 1,
+      node_had: '',
+      resove_had: ''
     }
   },
   mounted() {
@@ -150,6 +152,8 @@ export default {
   methods: {
     async  loadNode(node, resolve) {
       if (node.level === 0) {
+        this.node_had = node
+        this.resove_had = resolve
         var req = {
           'mode': 'select',
           'selectsql': 'select cat_id, cat_name, parent_id,leaf_flag from ns_cat where delflg=0 or delflg is null'
@@ -216,6 +220,8 @@ export default {
           that.setlist(that.currentid, 1)
           document.getElementById('new-todo').value = ''
           document.getElementById('selected').value = '0'
+          that.node_had.childNodes = []
+          that.loadNode(that.node_had, that.resove_had)
         })
       } else {
         alert('カテゴリを所属する商品がありますので、子カテゴリの新規作成はできません')
@@ -262,6 +268,8 @@ export default {
               this.refresh(this.currentid)
               that.setlist(this.currentid, 1)
               console.log('update!', this.currentid)
+              this.node_had.childNodes = []
+              this.loadNode(this.node_had, this.resove_had)
             })
             .catch(response => {
               console.log('Homepage getGoodsRsp  error!' + response)
@@ -308,6 +316,8 @@ export default {
             this.refresh(this.currentid)
             that.setlist(this.currentid, 1)
             console.log('delete!', this.currentid)
+            this.node_had.childNodes = []
+            this.loadNode(this.node_had, this.resove_had)
           })
           .catch(response => {
             console.log('Homepage getGoodsRsp  error!' + response)
