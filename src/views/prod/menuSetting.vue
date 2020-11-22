@@ -65,12 +65,12 @@
             <el-input v-model="form.rep_desp" prop="rep_desp" />
           </el-form-item>
           <el-form-item label="画像URL">
-            <el-input v-model="form.rsp_img" />
             <div class="file_box">
               <span class="upload">
                 <input type="file" value="画像選択" accept="image/*" @change="tirggerFile($event)">
                 <img :src="form.rsp_img" alt>
               </span>
+              <el-input v-model="form.rsp_img" type="hidden" />
             </div>
           </el-form-item>
           <el-form-item>

@@ -95,8 +95,6 @@
             <el-input v-model="form.item_desp" prop="textarea" />
           </el-form-item>
           <el-form-item label="画像URL">
-            <el-input v-model="form.itemimg" />
-
             <div class="file_box">
               <span class="upload">
                 <input
@@ -109,6 +107,7 @@
 
                 <img :src="form.itemimg" alt>
               </span>
+              <el-input v-model="form.itemimg" type="hidden" />
             </div>
           </el-form-item>
           <el-form-item>
