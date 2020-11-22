@@ -65,17 +65,17 @@
             <el-input v-model="form.rep_desp" prop="rep_desp" />
           </el-form-item>
           <el-form-item label="画像URL">
+            <el-input v-if="pathHide" v-model="form.rsp_img" />
             <div class="file_box">
               <span class="upload">
-                <input type="file" value="画像選択" accept="image/*" @change="tirggerFile($event)">
+                <input id="imgUpload" type="file" value="画像選択" accept="image/*" @change="tirggerFile($event)">
                 <img :src="form.rsp_img" alt>
               </span>
-              <el-input v-model="form.rsp_img" type="hidden" />
             </div>
           </el-form-item>
           <el-form-item>
             <el-button type="primary" @click="onSubmit(form.rsp_id)">{{ sub_button }}</el-button>
-            <el-button @click="visible = false">キャンセル</el-button>
+            <el-button @click="insertCencle()">キャンセル</el-button>
           </el-form-item>
         </el-form>
       </el-dialog>
@@ -112,7 +112,7 @@ export default {
       popshow: false,
       poptitle: '',
       current_rspid: '',
-
+      pathHide: false,
       saleTypes: [
         { txt: 'セール中', value: 1 },
         { txt: '全て', value: 0 }
@@ -190,6 +190,9 @@ export default {
         .catch(response => {
           console.log('Before Update select   error!' + response)
         })
+      if (this.form.rsp_img) {
+        this.pathHide = true
+      }
     },
     // 選択条件リセット
     reset: function() {
@@ -317,6 +320,13 @@ export default {
         })
       return this.catData
     },
+    insertCencle: function() {
+      this.pathHide = false
+      this.visible = false
+      this.formParam = ''
+      var obj = document.getElementById('imgUpload')
+      obj.value = ''
+    },
     onSubmit: async function(id) {
       if (!this.form.rsp_name) {
         alert('レシピ名を入力して下さい。')
@@ -406,6 +416,7 @@ export default {
           })
       }
 
+      this.pathHide = false
       this.visible = false
       this.sales_rate = null
       this.sales_type = '0'
