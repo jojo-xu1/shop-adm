@@ -40,10 +40,11 @@
         </template>
       </el-table-column>
       <el-table-column prop="item_desp" label="品目詳細" width="180" />
-      <el-table-column prop="price" label="税抜き" width="75" />
-      <el-table-column prop="taxprice" label="税込" width="75" />
+      <el-table-column prop="price" label="税抜き(円)" width="125" />
+      <el-table-column prop="taxprice" label="税込(円)" width="75" />
       <el-table-column prop="sales_rate" label="割引率" width="75" />
-      <el-table-column prop="last_price" label="レジ金額" width="75" />
+      <el-table-column prop="last_price" label="レジ金額(円)" width="125" />
+      <el-table-column prop="unit" label="単位" width="50" />
       <el-table-column prop="itemimg" label="画像URL" width="120" />
       <el-table-column label="操作">
         <template slot-scope="scope">
@@ -91,10 +92,14 @@
           <el-form-item label="税込" prop="taxprice">
             <el-input v-model="form.taxprice">円</el-input>
           </el-form-item>
+          <el-form-item label="単位" prop="unit">
+            <el-input v-model="form.unit" />
+          </el-form-item>
           <el-form-item label="品目詳細">
             <el-input v-model="form.item_desp" prop="textarea" />
           </el-form-item>
           <el-form-item label="画像URL">
+            <el-input v-if="pathHide" v-model="form.itemimg" />
             <div class="file_box">
               <span class="upload">
                 <input
@@ -107,7 +112,6 @@
 
                 <img :src="form.itemimg" alt>
               </span>
-              <el-input v-model="form.itemimg" type="hidden" />
             </div>
           </el-form-item>
           <el-form-item>
@@ -141,7 +145,7 @@ export default {
       goodsData: [],
       tableData: [],
       newTableData: [],
-
+      pathHide: false,
       saleTypes: [
         { txt: 'セール中', value: 1 },
         { txt: '全て', value: 0 }
@@ -170,11 +174,10 @@ export default {
       this.form = {}
       this.newCatData = this.catData
       this.newGoodsData = this.goodsData
-
       var req = {
         mode: 'select',
         selectsql:
-          'select im.item_id as item_id,im.item_name as item_name,im.sales_rate as sales_rate,im.sales_type as sales_type,im.item_desp as item_desp,im.price as price,im.taxprice as taxprice, im.itemimg as itemimg,gd.goods_id as new_goods_id,gd.cat_id as new_cat_id from ns_item im left join ns_goods gd on gd.goods_id = im.goods_id where im.item_id = ' +
+          'select im.item_id as item_id,im.item_name as item_name,im.sales_rate as sales_rate,im.sales_type as sales_type,im.item_desp as item_desp,im.price as price,im.taxprice as taxprice,im.unit as unit, im.itemimg as itemimg,gd.goods_id as new_goods_id,gd.cat_id as new_cat_id from ns_item im left join ns_goods gd on gd.goods_id = im.goods_id where im.item_id = ' +
           id +
           " and im.delflg is null or im.delflg = '' and gd.delflg is null"
       }
@@ -187,7 +190,9 @@ export default {
         .catch(response => {
           console.log('Homepage getGoodsRsp  error!' + response)
         })
-
+      if (this.form.itemimg) {
+        this.pathHide = true
+      }
       this.new_cat_id = this.form.cat_id
       this.newCatChanged()
       this.new_goods_id = this.form.goods_id
@@ -225,7 +230,7 @@ export default {
           var req1 = {
             mode: 'select',
             selectsql:
-              'select im.item_id as item_id,im.item_name as item_name,im.sales_rate as sales_rate,im.sales_type as sales_type, im.item_desp as item_desp,im.price as price,im.taxprice as taxprice, im.itemimg as itemimg,' +
+              'select im.item_id as item_id,im.item_name as item_name,im.sales_rate as sales_rate,im.sales_type as sales_type, im.item_desp as item_desp,im.price as price,im.taxprice as taxprice,im.unit as unit,im.itemimg as itemimg,' +
               'gd.goods_name as goods_name,ct.cat_name as cat_name from ns_item im left join ns_goods gd on gd.goods_id = im.goods_id left join ns_cat ct on ct.cat_id = gd.cat_id ' +
               "where (im.delflg is null or im.delflg = '') and gd.delflg is null and gd.cat_id =" +
               this.cat_id
@@ -243,7 +248,7 @@ export default {
           var req2 = {
             mode: 'select',
             selectsql:
-              'select im.item_id as item_id,im.item_name as item_name,im.sales_rate as sales_rate,im.sales_type as sales_type,im.item_desp as item_desp,im.price as price,im.taxprice as taxprice, im.itemimg as itemimg,' +
+              'select im.item_id as item_id,im.item_name as item_name,im.sales_rate as sales_rate,im.sales_type as sales_type,im.item_desp as item_desp,im.price as price,im.taxprice as taxprice,im.unit as unit, im.itemimg as itemimg,' +
               'gd.goods_name as goods_name,ct.cat_name as cat_name from ns_item im left join ns_goods gd on gd.goods_id = im.goods_id left join ns_cat ct on ct.cat_id = gd.cat_id ' +
               "where (im.delflg is null or im.delflg = '') and gd.delflg is null and im.goods_id =" +
               this.goods_id
@@ -265,7 +270,7 @@ export default {
           var req3 = {
             mode: 'select',
             selectsql:
-              'select im.item_id as item_id,im.item_name as item_name,im.sales_rate as sales_rate,im.sales_type as sales_type,im.item_desp as item_desp,im.price as price,im.taxprice as taxprice, ' +
+              'select im.item_id as item_id,im.item_name as item_name,im.sales_rate as sales_rate,im.sales_type as sales_type,im.item_desp as item_desp,im.price as price,im.taxprice as taxprice,im.unit as unit, ' +
               'im.itemimg as itemimg,gd.goods_name as goods_name,ct.cat_name as cat_name from ns_item im left join ns_goods gd on gd.goods_id = im.goods_id ' +
               'left join ns_cat ct on ct.cat_id = gd.cat_id where im.sales_type = ' +
               this.salesType +
@@ -285,7 +290,7 @@ export default {
           var req4 = {
             mode: 'select',
             selectsql:
-              'select im.item_id as item_id,im.item_name as item_name,im.sales_rate as sales_rate,im.sales_type as sales_type,im.item_desp as item_desp,im.price as price,im.taxprice as taxprice, im.itemimg as itemimg,' +
+              'select im.item_id as item_id,im.item_name as item_name,im.sales_rate as sales_rate,im.sales_type as sales_type,im.item_desp as item_desp,im.price as price,im.taxprice as taxprice,im.unit as unit, im.itemimg as itemimg,' +
               'gd.goods_name as goods_name,ct.cat_name as cat_name from ns_item im left join ns_goods gd on gd.goods_id = im.goods_id left join ns_cat ct on ct.cat_id = gd.cat_id where im.sales_type = ' +
               this.salesType +
               " and (im.delflg is null or im.delflg = '') and gd.delflg is null and gd.cat_id =" +
@@ -304,7 +309,7 @@ export default {
           var req5 = {
             mode: 'select',
             selectsql:
-              'select im.item_id as item_id,im.item_name as item_name,im.sales_rate as sales_rate,im.sales_type as sales_type,im.item_desp as item_desp,im.price as price,im.taxprice as taxprice, im.itemimg as itemimg,' +
+              'select im.item_id as item_id,im.item_name as item_name,im.sales_rate as sales_rate,im.sales_type as sales_type,im.item_desp as item_desp,im.price as price,im.taxprice as taxprice,im.unit as unit, im.itemimg as itemimg,' +
               'gd.goods_name as goods_name,ct.cat_name as cat_name from ns_item im left join ns_goods gd on gd.goods_id = im.goods_id left join ns_cat ct on ct.cat_id = gd.cat_id where im.sales_type = ' +
               this.salesType +
               " and (im.delflg is null or im.delflg = '') and gd.delflg is null and im.goods_id =" +
@@ -433,7 +438,7 @@ export default {
       var req1 = {
         mode: 'select',
         selectsql:
-          "select im.item_id as item_id,im.item_name as item_name,im.sales_rate as sales_rate,im.sales_type as sales_type,im.item_desp as item_desp,im.price as price,im.taxprice as taxprice, im.itemimg as itemimg,gd.goods_name as goods_name,ct.cat_name as cat_name from ns_item im left join ns_goods gd on gd.goods_id = im.goods_id left join ns_cat ct on ct.cat_id = gd.cat_id where im.delflg is null or im.delflg = '' and gd.delflg is null"
+          "select im.item_id as item_id,im.item_name as item_name,im.sales_rate as sales_rate,im.sales_type as sales_type,im.item_desp as item_desp,im.price as price,im.taxprice as taxprice,im.unit as unit, im.itemimg as itemimg,gd.goods_name as goods_name,ct.cat_name as cat_name from ns_item im left join ns_goods gd on gd.goods_id = im.goods_id left join ns_cat ct on ct.cat_id = gd.cat_id where im.delflg is null or im.delflg = '' and gd.delflg is null"
       }
       await this.axios
         .post(this.$baseUrl + '/web.do', req1)
@@ -485,6 +490,7 @@ export default {
       return this.catData
     },
     insertCencle: function() {
+      this.pathHide = false
       this.visible = false
       this.formParam = ''
       var obj = document.getElementById('imgUpload')
@@ -501,6 +507,10 @@ export default {
       }
       if (!this.form.price) {
         alert('価格を入力して下さい。')
+        return
+      }
+      if (!this.form.unit) {
+        alert('単位を入力して下さい。')
         return
       }
       if (!this.form.itemimg) {
@@ -549,6 +559,7 @@ export default {
             sales_type: this.sales_type,
             price: this.form.price,
             taxprice: this.form.taxprice,
+            unit: this.form.unit,
             itemimg: this.form.itemimg
           }
         }
@@ -574,6 +585,7 @@ export default {
             sales_type: this.sales_type,
             price: this.form.price,
             taxprice: this.form.taxprice,
+            unit: this.form.unit,
             itemimg: this.form.itemimg
           }
         }
@@ -588,7 +600,7 @@ export default {
           })
         console.log('submit!')
       }
-
+      this.pathHide = false
       this.visible = false
       this.sales_rate = null
       this.sales_type = '0'
