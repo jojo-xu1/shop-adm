@@ -17,7 +17,7 @@
             "
           >
             <a
-              :href="this.$baseUrl + '/downloadcsv?sql=select g.cat_id, g.goods_name, g.goods_id, c.cat_name, c.leaf_flag from ns_goods g left join ns_cat c on g.cat_id = c.cat_id where g.delflg is null or g.delflg <> 1'"
+              :href="this.$baseUrl + '/downloadcsv?sql=select g.cat_id, g.goods_name, g.goods_id, c.cat_name, c.leaf_flag from ns_goods g left join ns_cat c on g.cat_id = c.cat_id where (g.delflg is null or g.delflg <> 1) and (c.delflg is null or c.delflg <> 1)'"
             >
               <i class="el-icon-download" />
               CSVダウンロード
@@ -109,7 +109,7 @@
                   </tr>
                 </thead>
                 <draggable v-model="list" tag="tbody">
-                  <tr v-for="item in list" :key="item.goods_id">
+                  <tr v-for="(item,index) in list" :key="item.goods_id">
                     <td scope="row">{{ item.goods_id }}</td>
                     <td>
                       <el-link type="primary">{{ item.cat_name }}</el-link>
@@ -140,7 +140,7 @@
                         size="mini"
                         style="border: none"
                         icon="el-icon-edit"
-                        @click="handleEdit(item.goods_id)"
+                        @click="handleEdit(item.goods_id,index)"
                       />
                     </td>
                     <td>
@@ -179,9 +179,9 @@
       width="30%"
       :close-on-click-modal="false"
     >
-      <el-form ref="form" :model="form" label-width="80px">
+      <el-form ref="form" :model="editform" label-width="80px">
         <el-form-item label="商品名">
-          <el-input v-model="form.goods_name" />
+          <el-input v-model="editform.goods_name" />
         </el-form-item>
         <el-form-item>
           <el-button @click="editvisible = false">キャンセル</el-button>
@@ -214,6 +214,9 @@ export default {
       uploadvisible: false,
       fileList: [],
       leafFlag: 0,
+      editform: {
+        goods_name: ''
+      },
       defaultProps: {
         // children: 'children',
         label: 'cat_name'
@@ -341,16 +344,17 @@ export default {
       //     data.leaf_flag = leaf_flag
       //   })
     },
-    handleEdit(goods_id) {
+    handleEdit(goods_id, index) {
       this.editvisible = true
       this.form.goods_id = goods_id
+      this.editform.goods_name = this.list[index].goods_name
       console.log('goodsid', goods_id)
     },
     async onSubmit() {
       this.editvisible = false
       console.log('SubmitTest:goods_id=', this.form.goods_id)
       var goods_name = {}
-      goods_name.goods_name = this.form.goods_name
+      goods_name.goods_name = this.editform.goods_name
       var dataNewname = {}
       dataNewname.mode = 'update'
       dataNewname.tableName = 'ns_goods'
