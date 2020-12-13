@@ -84,7 +84,7 @@
                   <tr v-for="item in list" :key="item.cat_name">
                     <td scope="row">{{ item.cat_id }}</td>
                     <td><el-link type="primary" @click="setlist(item.cat_id,0)">{{ item.cat_name }}</el-link></td>
-                    <td scope="row">{{ item.leaf_flag==true ?1:0 }}</td>
+                    <td scope="row">{{ item.leaf_flag }}</td>
                     <td>
                       <el-button size="mini" @click="catUp(item.cat_id)">↑</el-button>
                     </td>
@@ -196,7 +196,7 @@ export default {
         console.log(response)
       })
       if (!temp) {
-        temp = { leaf_flag: false }
+        temp = { leaf_flag: 0 }
       }
       var cat = {}
       cat.parent_id = this.currentid
@@ -207,7 +207,7 @@ export default {
       data.tableName = 'ns_cat'
       data.data = cat
       var that = this
-      if (temp.leaf_flag === false || temp.leaf_flag === '') {
+      if (temp.leaf_flag === 0 || temp.leaf_flag === '') {
         console.log('123', that.currentid)
         this.axios.post(this.$baseUrl + '/web.do', data).then(function(resp) {
           console.log(that.leaf_flag)
