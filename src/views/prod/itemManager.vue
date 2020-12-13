@@ -1,14 +1,8 @@
 <template>
   <div id="items">
     <span>カテゴリ :</span>
-    <el-select ref="sel_cat" v-model="cat_id" placeholder="カテゴリ名" @change="catChanged">
-      <el-option
-        v-for="colg in catData"
-        :key="colg.cat_id"
-        :label="colg.cat_name"
-        :value="colg.cat_id"
-      />
-    </el-select>
+    <el-cascader ref="myCascader" :props="fatherCatData" @change="catChanged" />
+
     <span>商品 :</span>
     <el-select ref="sel_gds" v-model="goods_id" placeholder="商品名">
       <el-option
@@ -56,20 +50,16 @@
       </el-table-column>
     </el-table>
     <div>
-      <el-dialog :title="title" :close-on-click-modal="false" :visible.sync="visible">
+      <el-dialog :title="title" :close-on-click-modal="false" :visible.sync="visible" @close="insertCencle()">
         <el-form ref="form" :model="form" label-width="80px">
           <el-form-item label="カテゴリ" prop="cat">
-            <el-select v-model="new_cat_id" placeholder="カテゴリ名" @change="newCatChanged">
-              <el-option
-                v-for="colg in newCatData"
-                :key="colg.cat_id"
-                :label="colg.cat_name"
-                :value="colg.cat_id"
-              />
-            </el-select>
+            <el-input v-show="itemupdate" v-model="form.cat_name" :disabled="true" />
+            <el-cascader v-show="iteminsert" ref="myCascader2" :props="fatherCatData" @change="newCatChanged" />
           </el-form-item>
           <el-form-item label="商品" prop="goods">
-            <el-select v-model="new_goods_id" placeholder="商品名">
+            <el-input v-show="itemupdate" v-model="form.goods_name" :disabled="true" />
+            <el-input v-show="false" v-model="form.goods_id" :disabled="true" />
+            <el-select v-show="iteminsert" v-model="new_goods_id" placeholder="商品名">
               <el-option
                 v-for="goods in newGoodsData"
                 :key="goods.goods_id"
@@ -125,6 +115,7 @@
 </template>
 
 <script>
+import axios from 'axios'
 export default {
   name: 'ItemManager',
 
@@ -137,11 +128,45 @@ export default {
       sub_button: '',
       sales_rate: '',
       sales_type: '',
+      itemupdate: false,
+      iteminsert: true,
       visible: false,
       delVisible: false,
       sale_show: false,
       formParam: '',
       catData: [],
+      fatherCatData: {
+        lazy: true,
+        lazyLoad(node, resolve) {
+          var req = {}
+          if (node.level === 0) {
+            req = {
+              mode: 'select',
+              selectsql: "select cat_id,cat_name,leaf_flag from ns_cat where parent_id = '0' and delflg is null "
+            }
+          } else {
+            req = {
+              mode: 'select',
+              selectsql: 'select cat_id,cat_name,leaf_flag from ns_cat where parent_id = ' + node.data.value
+            }
+          }
+          console.log(req)
+          axios
+            .post('http://13.112.112.160:8080/test/web.do', req)
+            .then(res => {
+              const cities = res.data.data.map(value => ({
+                value: value.cat_id,
+                label: value.cat_name,
+                leaf: value.leaf_flag === 1
+              }))
+              // 通过调用resolve将子节点数据返回，通知组件数据加载完成
+              resolve(cities)
+            })
+            .catch(err => {
+              console.log(err)
+            })
+        }
+      },
       goodsData: [],
       tableData: [],
       newTableData: [],
@@ -169,15 +194,15 @@ export default {
     // 更新ボタン押下
     itemUpdate: async function(id) {
       this.visible = true
+      this.itemupdate = true
+      this.iteminsert = false
       this.title = '品目更新'
       this.sub_button = '更新'
       this.form = {}
-      this.newCatData = this.catData
-      this.newGoodsData = this.goodsData
       var req = {
         mode: 'select',
         selectsql:
-          'select im.item_id as item_id,im.item_name as item_name,im.sales_rate as sales_rate,im.sales_type as sales_type,im.item_desp as item_desp,im.price as price,im.taxprice as taxprice,im.unit as unit, im.itemimg as itemimg,gd.goods_id as new_goods_id,gd.cat_id as new_cat_id from ns_item im left join ns_goods gd on gd.goods_id = im.goods_id where im.item_id = ' +
+          'select im.item_id as item_id,im.item_name as item_name,im.sales_rate as sales_rate,im.sales_type as sales_type,im.item_desp as item_desp,im.price as price,im.taxprice as taxprice,im.unit as unit, im.itemimg as itemimg,gd.goods_id as goods_id,gd.goods_name as goods_name,cat.cat_name as cat_name from ns_item im left join ns_goods gd on gd.goods_id = im.goods_id left join ns_cat cat on gd.cat_id = cat.cat_id where im.item_id = ' +
           id +
           " and im.delflg is null or im.delflg = '' and gd.delflg is null"
       }
@@ -193,10 +218,6 @@ export default {
       if (this.form.itemimg) {
         this.pathHide = true
       }
-      this.new_cat_id = this.form.cat_id
-      this.newCatChanged()
-      this.new_goods_id = this.form.goods_id
-
       this.checked = false
       this.sale_show = false
       console.log(this.hidden)
@@ -207,6 +228,7 @@ export default {
     },
     // 選択条件リセット
     reset: function() {
+      this.$refs['myCascader'].$refs.panel.clearCheckedNodes()
       this.cat_id = ''
       this.goodsData = []
       this.goods_id = ''
@@ -222,6 +244,7 @@ export default {
     // 品目検索
     search: async function() {
       var that = this
+      that.cat_id = this.$refs['myCascader'].getCheckedNodes()[0].data.value
       console.log(this.salesType)
       if (this.salesType === 0 || this.salesType === '') {
         if (this.goods_id.length === 0 && this.cat_id.length === 0) {
@@ -285,7 +308,6 @@ export default {
             .catch(response => {
               console.log('Homepage getGoodsRsp  error!' + response)
             })
-          this._getInit()
         } else if (this.goods_id.length === 0 && this.cat_id !== '') {
           var req4 = {
             mode: 'select',
@@ -348,17 +370,18 @@ export default {
       return this.tableData
     },
     catChanged: async function() {
+      var catId = this.$refs['myCascader'].getCheckedNodes()[0].data.value
       this.goods_id = ''
       var req = {
         mode: 'select',
         selectsql:
           'select * from ns_goods where delflg is null and cat_id =' +
-          this.cat_id
+          catId
       }
       await this.axios
         .post(this.$baseUrl + '/web.do', req)
         .then(response => {
-          console.log(response.data)
+          console.log(response.data.data)
           this.goodsData = response.data.data
         })
         .catch(response => {
@@ -368,13 +391,13 @@ export default {
       return this.goodsData
     },
     newCatChanged: async function() {
+      var catId = this.$refs['myCascader2'].getCheckedNodes()[0].data.value
       this.new_goods_id = ''
-      console.log(this.new_cat_id)
       var req = {
         mode: 'select',
         selectsql:
           'select * from ns_goods where delflg is null and cat_id =' +
-          this.new_cat_id
+          catId
       }
       await this.axios
         .post(this.$baseUrl + '/web.do', req)
@@ -409,13 +432,10 @@ export default {
     // 新規ボタン押下
     itemInsert: function() {
       this.visible = true
+      this.itemupdate = false
+      this.iteminsert = true
       this.getInit()
       this.form = {}
-
-      this.newCatData = this.catData
-      this.newGoodsData = this.goodsData
-      this.new_cat_id = this.cat_id
-      this.new_goods_id = this.goods_id
       this.sub_button = '登録'
       this.title = '新規登録'
       this.sale_show = false
@@ -464,32 +484,10 @@ export default {
         }
       }
       console.log(this.tableData)
-      this._getInit()
       return this.tableData
     },
-    _getInit: async function() {
-      var req2 = {
-        mode: 'select',
-        selectsql: 'select * from ns_cat where delflg is null '
-      }
-      await this.axios
-        .post(this.$baseUrl + '/web.do', req2)
-        .then(response => {
-          console.log(response.data)
-          // this.preCatData = response.data.data
-          this.catData = response.data.data
-        })
-        .catch(response => {
-          console.log('Homepage getGoodsRsp  error!' + response)
-        })
-      // for(prat in this.preCatData){
-      //   if(prat.parent_id ===0){
-      //     this.catData.add(prat)
-      //   }
-      // }
-      return this.catData
-    },
     insertCencle: function() {
+      this.$refs['myCascader2'].$refs.panel.clearCheckedNodes()
       this.pathHide = false
       this.visible = false
       this.formParam = ''
@@ -553,12 +551,12 @@ export default {
           wheresql: 'item_id =' + id,
           data: {
             item_name: this.form.item_name,
-            goods_id: this.new_goods_id,
+            goods_id: this.form.goods_id,
             item_desp: this.form.item_desp,
             sales_rate: this.sales_rate,
             sales_type: this.sales_type,
-            price: this.form.price,
-            taxprice: this.form.taxprice,
+            price: this.form.price.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 65248) }),
+            taxprice: this.form.taxprice.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 65248) }),
             unit: this.form.unit,
             itemimg: this.form.itemimg
           }
@@ -583,8 +581,8 @@ export default {
             item_desp: this.form.item_desp,
             sales_rate: this.sales_rate,
             sales_type: this.sales_type,
-            price: this.form.price,
-            taxprice: this.form.taxprice,
+            price: this.form.price.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 65248) }),
+            taxprice: this.form.taxprice.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 65248) }),
             unit: this.form.unit,
             itemimg: this.form.itemimg
           }
@@ -604,6 +602,7 @@ export default {
       this.visible = false
       this.sales_rate = null
       this.sales_type = '0'
+      this.$refs['myCascader2'].$refs.panel.clearCheckedNodes()
       this.getInit()
     }
   }
