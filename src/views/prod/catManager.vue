@@ -52,7 +52,7 @@
                 style="height:35px;magin-left:5px"
                 placeholder="カテゴリ名"
               >
-              leaf_flag:
+              子カテゴリ有無:
               <select
                 id="selected"
                 style="
@@ -63,9 +63,9 @@
                   color: black;
                 "
               >
-                <!--<option value="0">leaf_flag</option>-->
-                <option value="0">0</option>
-                <option value="1">1</option>
+                <!--<option value="0">子カテゴリ有無</option>-->
+                <option value="0">あり</option>
+                <option value="1">なし</option>
               </select>
 
               <button style="background:white;height:35px;border-radius:4px;border:1px solid;margin:10px" @click="addCat">新規作成</button>
@@ -77,14 +77,14 @@
                   <tr>
                     <td scope="col">Id</td>
                     <td scope="col">カテゴリ</td>
-                    <td scope="col">leaf_flag</td>
+                    <td scope="col">子カテゴリ有無</td>
                   </tr>
                 </thead>
                 <draggable v-model="list" tag="tbody">
-                  <tr v-for="item in list" :key="item.cat_name">
+                  <tr v-for="(item,index) in list" :key="item.cat_name">
                     <td scope="row">{{ item.cat_id }}</td>
                     <td><el-link type="primary" @click="setlist(item.cat_id,0)">{{ item.cat_name }}</el-link></td>
-                    <td scope="row">{{ item.leaf_flag }}</td>
+                    <td scope="row">{{ item.leaf_flag==1 ?"なし":"あり" }}</td>
                     <td>
                       <el-button size="mini" @click="catUp(item.cat_id)">↑</el-button>
                     </td>
@@ -92,7 +92,7 @@
                       <el-button size="mini" @click="catDown(item.cat_id)">↓</el-button>
                     </td>
                     <td>
-                      <el-button size="mini" @click="catUpdate(item.cat_id,item.cat_name)">変更</el-button>
+                      <el-button size="mini" @click="catUpdate(item.cat_id,item.cat_name,index)">変更</el-button>
                     </td>
                     <td>
                       <el-button
@@ -119,6 +119,28 @@
       </el-col>
     </el-row>
     <p>項目の順番はドラッグ＆ドロップでも変更可能です。</p>
+    <el-dialog
+      title="カテゴリ変更"
+      :visible.sync="editvisible"
+      width="50%"
+      :close-on-click-modal="false"
+    >
+      <el-form ref="form" :model="editform" label-width="120px" label-position="left">
+        <el-form-item label="カテゴリ名">
+          <el-input v-model="editform.cat_name" />
+        </el-form-item>
+        <el-form-item label="子カテゴリ有無">
+          <el-select v-model="editform.leaf_flag">
+            <el-option label="あり" value="あり" />
+            <el-option label="なし" value="なし" />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button @click="editvisible = false">キャンセル</el-button>
+          <el-button type="primary" @click="onSubmit">変更</el-button>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
   </div>
 </template>
 
@@ -134,7 +156,15 @@ export default {
       list: [],
       breadList: [],
       currentid: 0,
-
+      editform: {
+        cat_name: '',
+        leaf_flag: ''
+      },
+      editvisible: false,
+      form: {
+        delivery: false,
+        cat_id: ''
+      },
       defaultProps: {
         // children: 'children',
         label: 'cat_name'
@@ -142,7 +172,8 @@ export default {
       },
       count: 1,
       node_had: '',
-      resove_had: ''
+      resove_had: '',
+      change_id: ''
     }
   },
   mounted() {
@@ -227,58 +258,54 @@ export default {
         alert('カテゴリを所属する商品がありますので、子カテゴリの新規作成はできません')
       }
     },
-    catUpdate(id, name) {
-      this.$prompt('カテゴリ名を入力してください', name, {
-        confirmButtonText: '確認',
-        cancelButtonText: 'キャンセル'
-      }).then(async({ value }) => {
-        var newName = value
-        this.$prompt('leaf_flagを0か１で入力してください', name, {
-          confirmButtonText: '確認',
-          cancelButtonText: 'キャンセル'
-        }).then(async({ value }) => {
-          var newFlag = value
-          this.$message({
-            type: 'success',
-            message: 'カテゴリを変更しました '
-          })
-          var resolve = ''
-          var that = this
-          var req = {
-            rscode: 'ok',
-            mode: 'update',
-            tableName: 'ns_cat',
-            wheresql: 'cat_id =' + id,
-            data: { cat_name: newName, leaf_flag: newFlag }
-          }
-          await this.axios
-            .post(this.$baseUrl + '/web.do', req)
-            .then(response => {
-              var req = {
-                'mode': 'select',
-                'selectsql': 'select cat_id, cat_name, parent_id,leaf_flag from ns_cat where delflg=0 or delflg is null'
-              }
+    catUpdate(cat_id, cat_name, index) {
+      this.editvisible = true
+      this.form.cat_id = cat_id
+      this.change_id = cat_id
+      this.editform.cat_name = this.list[index].cat_name
+      this.editform.leaf_flag = this.list[index].leaf_flag === 1 ? 'なし' : 'あり'
+    },
+    async onSubmit() {
+      this.editvisible = false
+      var newName = this.editform.cat_name
+      var newFlag = this.editform.leaf_flag === 'なし' ? 1 : 0
+      var resolve = ''
+      var that = this
+      var req = {
+        rscode: 'ok',
+        mode: 'update',
+        tableName: 'ns_cat',
+        wheresql: 'cat_id =' + this.change_id,
+        data: { cat_name: newName, leaf_flag: newFlag }
 
-              this.axios.post(this.$baseUrl + '/web.do', req).then((response) => {
-                console.log(response.data)
-                this.listall = response.data.data
-              }).catch((response) => {
-                console.log(response)
-              })
-              this.refresh(this.currentid)
-              that.setlist(this.currentid, 1)
-              console.log('update!', this.currentid)
-              this.node_had.childNodes = []
-              this.loadNode(this.node_had, this.resove_had)
-            })
-            .catch(response => {
-              console.log('Homepage getGoodsRsp  error!' + response)
-            })
-          console.log(req)
-          console.log('update!')
-          return resolve(this.getnode(0))
+      }
+      console.log('test12345')
+      await this.axios
+        .post(this.$baseUrl + '/web.do', req)
+        .then(response => {
+          var req = {
+            'mode': 'select',
+            'selectsql': 'select cat_id, cat_name, parent_id,leaf_flag from ns_cat where delflg=0 or delflg is null'
+          }
+          this.axios.post(this.$baseUrl + '/web.do', req).then((response) => {
+            console.log(response.data)
+            console.log('test1234567')
+            this.listall = response.data.data
+          }).catch((response) => {
+            console.log(response)
+          })
+          this.refresh(this.currentid)
+          that.setlist(this.currentid, 1)
+          console.log('update!', this.currentid)
+          this.node_had.childNodes = []
+          this.loadNode(this.node_had, this.resove_had)
         })
-      })
+        .catch(response => {
+          console.log('Homepage getGoodsRsp  error!' + response)
+        })
+      console.log(req)
+      console.log('update!')
+      return resolve(this.getnode(0))
     },
     catDelete(id, name) {
       this.$confirm(name + 'を削除しますか？', '確認', {
