@@ -1,7 +1,7 @@
 <template>
   <div id="items">
     <span>カテゴリ :</span>
-    <el-cascader ref="myCascader" :props="fatherCatData" @change="catChanged" />
+    <el-cascader ref="myCascader" :props="fatherCatData" placeholder="カテゴリ" @change="catChanged" />
 
     <span>商品 :</span>
     <el-select ref="sel_gds" v-model="goods_id" placeholder="商品名">
@@ -54,7 +54,7 @@
         <el-form ref="form" :model="form" label-width="80px">
           <el-form-item label="カテゴリ" prop="cat">
             <el-input v-show="itemupdate" v-model="form.cat_name" :disabled="true" />
-            <el-cascader v-show="iteminsert" ref="myCascader2" :props="fatherCatData" @change="newCatChanged" />
+            <el-cascader v-show="iteminsert" ref="myCascader2" :props="fatherCatData" placeholder="カテゴリ" @change="newCatChanged" />
           </el-form-item>
           <el-form-item label="商品" prop="goods">
             <el-input v-show="itemupdate" v-model="form.goods_name" :disabled="true" />
@@ -244,8 +244,6 @@ export default {
     // 品目検索
     search: async function() {
       var that = this
-      that.cat_id = this.$refs['myCascader'].getCheckedNodes()[0].data.value
-      console.log(this.salesType)
       if (this.salesType === 0 || this.salesType === '') {
         if (this.goods_id.length === 0 && this.cat_id.length === 0) {
           this.getInit()
@@ -370,13 +368,13 @@ export default {
       return this.tableData
     },
     catChanged: async function() {
-      var catId = this.$refs['myCascader'].getCheckedNodes()[0].data.value
+      this.cat_id = this.$refs['myCascader'].getCheckedNodes()[0].data.value
       this.goods_id = ''
       var req = {
         mode: 'select',
         selectsql:
           'select * from ns_goods where delflg is null and cat_id =' +
-          catId
+          this.cat_id
       }
       await this.axios
         .post(this.$baseUrl + '/web.do', req)
