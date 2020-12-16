@@ -77,10 +77,10 @@
             <el-input v-model="form.item_name" />
           </el-form-item>
           <el-form-item label="税抜き" prop="price">
-            <el-input v-model="form.price" />
+            <el-input v-model="form.price" @input="form.price=form.price.replace(/[^0-9+^\uFF10-\uFF19]+/g,'')" />
           </el-form-item>
           <el-form-item label="税込" prop="taxprice">
-            <el-input v-model="form.taxprice">円</el-input>
+            <el-input v-model="form.taxprice" @input="form.taxprice=form.taxprice.replace(/[^0-9+^\uFF10-\uFF19]+/g,'')" />
           </el-form-item>
           <el-form-item label="単位" prop="unit">
             <el-input v-model="form.unit" />
@@ -220,7 +220,6 @@ export default {
       }
       this.checked = false
       this.sale_show = false
-      console.log(this.hidden)
       if (this.form.sales_type === 1) {
         this.checked = true
         this.sale_show = true
@@ -364,11 +363,12 @@ export default {
           }
         }
       }
-      console.log(this.tableData)
       return this.tableData
     },
     catChanged: async function() {
-      this.cat_id = this.$refs['myCascader'].getCheckedNodes()[0].data.value
+      if (this.$refs['myCascader'].getCheckedNodes()[0]) {
+        this.cat_id = this.$refs['myCascader'].getCheckedNodes()[0].data.value
+      }
       this.goods_id = ''
       var req = {
         mode: 'select',
@@ -389,7 +389,10 @@ export default {
       return this.goodsData
     },
     newCatChanged: async function() {
-      var catId = this.$refs['myCascader2'].getCheckedNodes()[0].data.value
+      if (this.$refs['myCascader2'].getCheckedNodes()[0]) {
+        var catId = this.$refs['myCascader2'].getCheckedNodes()[0].data.value
+      }
+
       this.new_goods_id = ''
       var req = {
         mode: 'select',
@@ -515,7 +518,6 @@ export default {
       }
 
       // 画像保存
-      console.log('打印formdate打印' + this.formParam)
       if (this.formParam !== '') {
         await this.axios
           .post(this.$baseUrl + '/image-upload.do', this.formParam)
@@ -541,6 +543,7 @@ export default {
         this.sales_rate = null
       }
       // 品目更新
+      var numReg = new RegExp(/^[0-9]*$/)
       if (id) {
         var req = {
           rscode: 'ok',
@@ -553,8 +556,8 @@ export default {
             item_desp: this.form.item_desp,
             sales_rate: this.sales_rate,
             sales_type: this.sales_type,
-            price: this.form.price.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 65248) }),
-            taxprice: this.form.taxprice.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 65248) }),
+            price: numReg.test(this.form.price) ? this.form.price : this.form.price.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 65248) }),
+            taxprice: numReg.test(this.form.taxprice) ? this.form.taxprice : this.form.taxprice.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 65248) }),
             unit: this.form.unit,
             itemimg: this.form.itemimg
           }
@@ -579,8 +582,8 @@ export default {
             item_desp: this.form.item_desp,
             sales_rate: this.sales_rate,
             sales_type: this.sales_type,
-            price: this.form.price.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 65248) }),
-            taxprice: this.form.taxprice.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 65248) }),
+            price: numReg.test(this.form.price) ? this.form.price : this.form.price.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 65248) }),
+            taxprice: numReg.test(this.form.taxprice) ? this.form.taxprice : this.form.taxprice.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 65248) }),
             unit: this.form.unit,
             itemimg: this.form.itemimg
           }
