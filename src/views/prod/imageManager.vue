@@ -17,6 +17,7 @@
                   <tr v-for="item in imageList" :key="item.catimg_id">
                     <td scope="row">{{ item.catimg_id }}</td>
                     <td><el-link type="primary" @click="viewImage(item.catimg_path)">{{ item.catimg_path }}</el-link></td>
+                    <td><div :style="{'width': '100px', 'height':'100px', 'background-image': 'url(' + $webUrl + '/shopping/upimg/' + item.catimg_mini + ')'}" /></td>
                     <td><i class="el-icon-delete" @click="deleteImg(item.catimg_id,item.cat_id)" /> </td>
                   </tr>
                 </draggable>
@@ -111,7 +112,7 @@ export default {
       catId: 0,
       leafFlag: '0',
       imageList: [
-        { catimg_id: '', catimg_path: '', cat_id: '' }
+        { catimg_id: '', catimg_path: '', catimg_mini: '', cat_id: '' }
       ],
       dialogVisible: false,
       imgPath: '',
@@ -164,7 +165,7 @@ export default {
       // カタログと紐づく画像リストをDBから取得する
       var reqCat = {
         'mode': 'select',
-        'selectsql': 'SELECT t.catimg_id,t.catimg_path,t.cat_id from ns_catimg t where (t.delflg is null or t.delflg <> 1) and t.cat_id =' + cat_id
+        'selectsql': 'SELECT t.catimg_id,t.catimg_path,t.catimg_mini,t.cat_id from ns_catimg t where (t.delflg is null or t.delflg <> 1) and t.cat_id =' + cat_id
       }
       await this.axios.post(this.$baseUrl + '/web.do', reqCat).then((response) => {
         console.log(response.data)
