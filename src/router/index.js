@@ -191,6 +191,12 @@ export const asyncRoutes = [
         component: () => import('@/views/prod/menuSetting'),
         name: 'menuSetting',
         meta: { title: 'レシピ―', icon: 'edit' }
+      },
+      {
+        path: 'deliManager',
+        component: () => import('@/views/prod/deliManager'),
+        name: 'deliManager',
+        meta: { title: '配達管理', icon: 'edit' }
       }
     ]
   },
