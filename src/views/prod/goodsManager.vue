@@ -17,7 +17,10 @@
             "
           >
             <a
-              :href="this.$baseUrl + '/downloadcsv?sql=select g.cat_id, g.goods_name, g.goods_id, c.cat_name, c.leaf_flag from ns_goods g left join ns_cat c on g.cat_id = c.cat_id where (g.delflg is null or g.delflg <> 1) and (c.delflg is null or c.delflg <> 1)'"
+              :href="
+                this.$baseUrl +
+                  '/downloadcsv?sql=select g.cat_id, g.goods_name, g.goods_id, c.cat_name, c.leaf_flag from ns_goods g left join ns_cat c on g.cat_id = c.cat_id where (g.delflg is null or g.delflg <> 1) and (c.delflg is null or c.delflg <> 1)'
+              "
             >
               <i class="el-icon-download" />
               CSVダウンロード
@@ -109,13 +112,13 @@
                   </tr>
                 </thead>
                 <draggable v-model="list" tag="tbody">
-                  <tr v-for="(item,index) in list" :key="item.goods_id">
+                  <tr v-for="(item, index) in list" :key="item.goods_id">
                     <td scope="row">{{ item.goods_id }}</td>
                     <td>
-                      <el-link type="primary">{{ item.cat_name }}</el-link>
+                      {{ item.cat_name }}
                     </td>
                     <td>
-                      <el-link type="primary" @click="setlist(item.cat_id)">{{
+                      <el-link type="primary" @click="goTo(item.goods_id)">{{
                         item.goods_name
                       }}</el-link>
                     </td>
@@ -140,7 +143,7 @@
                         size="mini"
                         style="border: none"
                         icon="el-icon-edit"
-                        @click="handleEdit(item.goods_id,index)"
+                        @click="handleEdit(item.goods_id, index)"
                       />
                     </td>
                     <td>
@@ -287,7 +290,14 @@ export default {
         'http://netengine.sakura.ne.jp/event-ec/shopadm/setting/shop/csv/5'
       )
     },
+    goTo(goods_id) {
+      // 直接跳转
+      // this.$router.push("/itemManager");
 
+      // 带参数跳转
+      this.$router.push({ name: 'itemManager', params: { alert: '页面跳转成功', goods_id: goods_id }})
+      console.log('goodsid:', goods_id)
+    },
     handleUpload() {
       // console.log(this.msg)
       this.uploadvisible = true
@@ -300,11 +310,11 @@ export default {
     },
     handleClose(done) {
       this.$confirm('CSVアップロードやめますか')
-        .then(_ => {
+        .then((_) => {
           this.fileList = []
           done()
         })
-        .catch(_ => {})
+        .catch((_) => {})
     },
     addGoods() {
       var goods = {}
@@ -315,18 +325,16 @@ export default {
       data.tableName = 'ns_goods'
       data.data = goods
       var that = this
-      this.axios
-        .post(this.$baseUrl + '/web.do', data)
-        .then(function(resp) {
-          //  console.log("resp信息：", resp);
-          var data = {}
-          data.goods_id = resp.data.data
-          data.cat_id = that.currentid
-          data.goods_name = goods.goods_name
-          that.goodslist.push(data)
-          data.cat_name = that.currentname
-          that.setlist(that.currentid)
-        })
+      this.axios.post(this.$baseUrl + '/web.do', data).then(function(resp) {
+        //  console.log("resp信息：", resp);
+        var data = {}
+        data.goods_id = resp.data.data
+        data.cat_id = that.currentid
+        data.goods_name = goods.goods_name
+        that.goodslist.push(data)
+        data.cat_name = that.currentname
+        that.setlist(that.currentid)
+      })
       document.getElementById('new-todo').value = ''
       // var leaf_flag = {}
       // leaf_flag.leaf_flag = 1
