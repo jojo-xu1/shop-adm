@@ -9,7 +9,7 @@ import Layout from '@/layout'
 /* Router Modules */
 // import componentsRouter from './modules/components'
 // import chartsRouter from './modules/charts'
-// import tableRouter from './modules/table'
+//  import tableRouter from './modules/table'
 // import nestedRouter from './modules/nested'
 
 /**
@@ -157,17 +157,41 @@ export const asyncRoutes = [
     },
     children: [
       {
+        path: 'cat-manager',
+        component: () => import('@/views/prod/catManager'),
+        name: 'catManager',
+        meta: { title: 'カテゴリ管理', icon: 'edit' }
+      },
+      {
+        path: 'goods-manager',
+        component: () => import('@/views/prod/goodsManager'),
+        name: 'goodsManager',
+        meta: { title: '商品管理', icon: 'edit' }
+      },
+      {
+        path: 'item-manager',
+        component: () => import('@/views/prod/itemManager'),
+        name: 'itemManager',
+        meta: { title: '品目管理', icon: 'edit' }
+      },
+      {
+        path: 'image-manager',
+        component: () => import('@/views/prod/imageManager'),
+        name: 'imageManager',
+        meta: { title: '画像管理', icon: 'edit' }
+      },
+      {
         path: 'price-setting',
         component: () => import('@/views/prod/priceSetting'),
         name: 'priceSetting',
-        meta: { title: '商品定価', icon: 'edit' }
-      },
-      {
-        path: 'prod-setting',
-        component: () => import('@/views/prod/prodSetting'),
-        name: 'prodSetting',
         meta: { title: '売り場設定', icon: 'edit' }
       },
+      {
+        path: 'menu-setting',
+        component: () => import('@/views/prod/menuSetting'),
+        name: 'menuSetting',
+        meta: { title: 'レシピ―', icon: 'edit' }
+      }
     ]
   },
   // {
@@ -187,7 +211,7 @@ export const asyncRoutes = [
   // componentsRouter,
   // chartsRouter,
   // nestedRouter,
-  // tableRouter,
+  //  tableRouter,
 
   // {
   //   path: '/example',
