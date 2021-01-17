@@ -183,8 +183,21 @@ export default {
           catname: ''
         }
       ],
+      imageListTemp: [
+        {
+          catimg_id: '',
+          catimg_path: '',
+          catimg_mini: '',
+          cat_id: '',
+          cat_name: '',
+          catname: ''
+        }
+      ],
       dialogVisible: false,
       imgPath: '',
+      childrenlist: [
+        { cat_id: '' }
+      ],
       visibleComponent: false,
       imgSrc: '',
       cropImg: '',
@@ -230,14 +243,33 @@ export default {
       return nlist
     },
     handleNodeClick(node, data, value) {
-      if (node.parent_id !== 0) {
+      this.imageList = []
+      if (node.leaf_flag === 0) {
         console.log('node.cat_id:' + node.cat_id)
+        this.getAllChildrenId(node.cat_id)
+      } else {
         this.getImagesList(node.cat_id)
       }
       this.leafFlag = node.leaf_flag
     },
+    async getAllChildrenId(cat_id) {
+      var req = {
+        'mode': 'select',
+        'selectsql': 'select cat_id from ( select t1.cat_id,if(find_in_set(parent_id, @pids) > 0, @pids := concat(@pids, \',\', cat_id), 0) as ischild from (select cat_id,parent_id from ns_cat t where (delflg is null or delflg <> 1) order by parent_id, cat_id ) t1,(select @pids := ' + cat_id + ') t2) t3 where ischild != 0'
+      }
+      await this.axios.post(this.$baseUrl + '/web.do', req).then((response) => {
+        console.log('childrenList')
+        this.childrenlist = response.data.data
+        console.log(this.childrenlist)
+        for (var i in this.childrenlist) {
+          this.getImagesList(this.childrenlist[i].cat_id)
+        }
+      }).catch((response) => {
+        console.log(response)
+      })
+    },
     async getImagesList(cat_id) {
-      this.imageList = []
+      this.imageListTemp = []
       console.log('Image load start' + cat_id)
       // カタログと紐づく画像リストをDBから取得する
       var reqCat = {
@@ -251,13 +283,18 @@ export default {
         .then((response) => {
           console.log(response.data)
           if (response.data.data.length > 0) {
-            this.imageList = response.data.data
-            for (var i = 0; i < this.imageList.length; i++) {
-              this.imageList[i].catname = this.imageList[i].cat_name + (i + 1)
-              console.log('catname:', this.imageList)
+            this.imageListTemp = response.data.data
+            for (var i = 0; i < this.imageListTemp.length; i++) {
+              this.imageListTemp[i].catname = this.imageListTemp[i].cat_name + (i + 1)
+              console.log('catname:', this.imageListTemp)
             }
           }
+          console.log('I am here')
           this.catId = cat_id
+          for (var j in this.imageListTemp) {
+            this.imageList.push(this.imageListTemp[j])
+          }
+          console.log('I am there')
         })
         .catch((response) => {
           console.log('Image Response failed' + response)
@@ -281,6 +318,7 @@ export default {
             message: '削除しました!'
           })
           this.getImagesList(cat_id)
+          this.imageList = this.imageListTemp
         })
         .catch(() => {})
     },
@@ -391,6 +429,7 @@ export default {
           var obj = document.getElementById('imageFile')
           obj.value = ''
           this.getImagesList(this.catId)
+          this.imageList = this.imageListTemp
         })
         .catch((response) => {
           console.log('Insert error!' + response)
