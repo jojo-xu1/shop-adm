@@ -218,14 +218,11 @@ export default {
             }
           }
           console.log(req)
-          var baseUrl =
-            process.env.NODE_ENV === 'production'
-              ? 'http://13.112.112.160:9080/test'
-              : 'http://13.112.112.160:8080/test'
+          var baseUrl = process.env.NODE_ENV === 'production' ? 'http://13.112.112.160:9080/test' : 'http://13.112.112.160:8080/test'
           axios
-            .post(baseUrl + '/web.do', req)
-            .then((res) => {
-              const cities = res.data.data.map((value) => ({
+            .post(baseUrl + '/web.do', req)
+            .then(res => {
+              const cities = res.data.data.map(value => ({
                 value: value.cat_id,
                 label: value.cat_name,
                 leaf: value.leaf_flag === 1
