@@ -287,6 +287,7 @@ export default {
           console.log('Homepage getGoodsRsp  error!' + response)
         })
       this.tableData = this.newTableData
+      console.log('tableData--------' + this.tableData)
       // レジ金額再計算
       for (var item in this.tableData) {
         if (this.tableData[item].sales_type === 0) {
