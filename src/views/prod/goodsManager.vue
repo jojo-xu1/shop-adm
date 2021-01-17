@@ -17,7 +17,10 @@
             "
           >
             <a
-              :href="this.$baseUrl + '/downloadcsv?sql=select g.cat_id, g.goods_name, g.goods_id, c.cat_name, c.leaf_flag from ns_goods g left join ns_cat c on g.cat_id = c.cat_id where (g.delflg is null or g.delflg <> 1) and (c.delflg is null or c.delflg <> 1)'"
+              :href="
+                this.$baseUrl +
+                  '/downloadcsv?sql=select g.cat_id, g.goods_name, g.goods_id, c.cat_name, c.leaf_flag from ns_goods g left join ns_cat c on g.cat_id = c.cat_id where (g.delflg is null or g.delflg <> 1) and (c.delflg is null or c.delflg <> 1)'
+              "
             >
               <i class="el-icon-download" />
               CSVダウンロード
@@ -51,11 +54,15 @@
           <el-upload
             ref="upload"
             class="upload-demo"
-            action="      "
+            action=""
             :on-preview="handlePreview"
             :on-remove="handleRemove"
-            :file-list="fileList"
+            :file="file"
             :auto-upload="false"
+            accept=".csv"
+            :multiple="false"
+            :limit="1"
+            :on-change="handleChange"
           >
             <el-button
               slot="trigger"
@@ -109,13 +116,13 @@
                   </tr>
                 </thead>
                 <draggable v-model="list" tag="tbody">
-                  <tr v-for="(item,index) in list" :key="item.goods_id">
+                  <tr v-for="(item, index) in list" :key="item.goods_id">
                     <td scope="row">{{ item.goods_id }}</td>
                     <td>
-                      <el-link type="primary">{{ item.cat_name }}</el-link>
+                      {{ item.cat_name }}
                     </td>
                     <td>
-                      <el-link type="primary" @click="setlist(item.cat_id)">{{
+                      <el-link type="primary" @click="goTo(item.goods_id)">{{
                         item.goods_name
                       }}</el-link>
                     </td>
@@ -140,7 +147,7 @@
                         size="mini"
                         style="border: none"
                         icon="el-icon-edit"
-                        @click="handleEdit(item.goods_id,index)"
+                        @click="handleEdit(item.goods_id, index)"
                       />
                     </td>
                     <td>
@@ -212,6 +219,7 @@ export default {
       breadList: [],
       editvisible: false,
       uploadvisible: false,
+      file: [],
       fileList: [],
       leafFlag: 0,
       editform: {
@@ -287,24 +295,147 @@ export default {
         'http://netengine.sakura.ne.jp/event-ec/shopadm/setting/shop/csv/5'
       )
     },
+    goTo(goods_id) {
+      // 直接跳转
+      // this.$router.push("/itemManager");
 
+      // 带参数跳转
+      this.$router.push({ name: 'itemManager', params: { alert: '页面跳转成功', goods_id: goods_id }})
+      console.log('goodsid:', goods_id)
+    },
+    handleChange(file, fileList) {
+      this.fileTemp = file.raw
+      if (this.fileTemp) {
+        if (
+          this.fileTemp.type ===
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+          this.fileTemp.type === 'application/vnd.ms-excel'
+        ) {
+          this.importfxx(this.fileTemp)
+        } else {
+          this.$message({
+            type: 'warning',
+            message: '附件格式错误，请删除后重新上传！'
+          })
+        }
+      } else {
+        this.$message({
+          type: 'warning',
+          message: '请上传附件！'
+        })
+      }
+    },
+    importfxx(obj) {
+      const _this = this
+      //  const inputDOM = this.$refs.inputer // 通过DOM取文件数据
+      this.file = event.currentTarget.files[0]
+
+      var rABS = false // 是否将文件读取为二进制字符串
+      var f = this.file
+
+      var reader = new FileReader() // if (!FileReader.prototype.readAsBinaryString) {
+      FileReader.prototype.readAsBinaryString = function(f) {
+        var binary = ''
+        var rABS = false // 是否将文件读取为二进制字符串
+        //  var pt = this
+        var wb // 读取完成的数据
+        var outdata
+        var reader = new FileReader()
+        reader.onload = function(e) {
+          var bytes = new Uint8Array(reader.result)
+          var length = bytes.byteLength
+          for (var i = 0; i < length; i++) {
+            binary += String.fromCharCode(bytes[i])
+          }
+          var XLSX = require('xlsx')
+          if (rABS) {
+            wb = XLSX.read(btoa(this.fixdata(binary)), {
+              // 手动转化
+              type: 'base64'
+            })
+          } else {
+            wb = XLSX.read(binary, {
+              type: 'binary'
+            })
+          }
+          outdata = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]) // outdata就是你想要的东西
+          console.log('未处理的原始数据如下：')
+          console.log(outdata) // 此处可对数据进行处理
+          const arr = []
+          outdata.map((v) => {
+            const obj = {}
+            obj.cat_id = v['cat_id']
+            obj.goods_name = v['goods_name']
+            obj.goods_id = v['goods_id']
+            obj.cat_name = v['cat_name']
+            obj.leaf_flag = v['leaf_flag']
+            arr.push(obj)
+          })
+          _this.da = arr
+          _this.dalen = arr.length
+          return arr
+        }
+        reader.readAsArrayBuffer(f)
+      }
+      if (rABS) {
+        reader.readAsArrayBuffer(f)
+      } else {
+        reader.readAsBinaryString(f)
+      }
+    },
+    fixdata(data) { // 文件流转BinaryString
+      var o = ''
+      var l = 0
+      var w = 10240
+      for (; l < data.byteLength / w; ++l) o += String.fromCharCode.apply(null, new Uint8Array(data.slice(l * w, l * w + w)))
+      o += String.fromCharCode.apply(null, new Uint8Array(data.slice(l * w)))
+      return o
+    },
     handleUpload() {
       // console.log(this.msg)
       this.uploadvisible = true
-      console.log(this.$refs.upload.files)
+      // console.log(this.$refs.upload.files)
     },
-    submitUpload() {
-      this.$refs.upload.submit().then(() => {
-        // 回调函数
-      })
+    async submitUpload() {
+      var formData = new FormData()
+      formData.append('file', this.file)
+      console.log('file:', this.file)
+      console.log('url:', this.$baseUrl)
+      formData.append('tab', 'ns_goods')
+      formData.append('cols', 5)
+      console.log('url:', this.$baseUrl)
+      await this.axios
+        .post(this.$baseUrl + '/csvupload', formData)
+        .then((response) => {
+          console.log('Upload success!')
+          console.log(response.data)
+          this.$message({
+            type: 'success',
+            message: 'CSV UPLOADしました '
+          })
+        })
+        .catch((response) => {
+          console.log('Upload error!' + response)
+        })
+      // 清空上传表
+      this.file = []
+      this.$refs.upload.clearFiles()
     },
+    clearFile() {
+      this.$refs.clearFile.value = '' // 清空file文件
+    },
+    handleRemove() {
+      this.$refs.upload.clearFiles()
+    },
+
     handleClose(done) {
       this.$confirm('CSVアップロードやめますか')
-        .then(_ => {
-          this.fileList = []
+        .then((_) => {
+          this.file = []
+          this.$refs.upload.clearFiles()
           done()
         })
-        .catch(_ => {})
+        .catch((_) => {})
     },
     addGoods() {
       var goods = {}
@@ -315,18 +446,16 @@ export default {
       data.tableName = 'ns_goods'
       data.data = goods
       var that = this
-      this.axios
-        .post(this.$baseUrl + '/web.do', data)
-        .then(function(resp) {
-          //  console.log("resp信息：", resp);
-          var data = {}
-          data.goods_id = resp.data.data
-          data.cat_id = that.currentid
-          data.goods_name = goods.goods_name
-          that.goodslist.push(data)
-          data.cat_name = that.currentname
-          that.setlist(that.currentid)
-        })
+      this.axios.post(this.$baseUrl + '/web.do', data).then(function(resp) {
+        //  console.log("resp信息：", resp);
+        var data = {}
+        data.goods_id = resp.data.data
+        data.cat_id = that.currentid
+        data.goods_name = goods.goods_name
+        that.goodslist.push(data)
+        data.cat_name = that.currentname
+        that.setlist(that.currentid)
+      })
       document.getElementById('new-todo').value = ''
       // var leaf_flag = {}
       // leaf_flag.leaf_flag = 1
