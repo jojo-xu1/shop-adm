@@ -1,23 +1,7 @@
 <template>
   <div id="items">
-    <span>カテゴリ :</span>
-    <el-select ref="sel_cat" v-model="cat_id" placeholder="カテゴリ名" @change="catChanged">
-      <el-option
-        v-for="colg in catData"
-        :key="colg.cat_id"
-        :label="colg.cat_name"
-        :value="colg.cat_id"
-      />
-    </el-select>
-    <span>商品 :</span>
-    <el-select ref="sel_gds" v-model="goods_id" placeholder="商品名">
-      <el-option
-        v-for="goods in goodsData"
-        :key="goods.goods_id"
-        :label="goods.goods_name"
-        :value="goods.goods_id"
-      />
-    </el-select>
+    <span>レシピ名 :</span>
+    <el-input v-model="search_rsp_name" style="width: 20%" />
 
     <br>
     <el-button type="primary" @click="search">检索</el-button>
@@ -94,35 +78,20 @@ export default {
   components: { RspPop },
   data() {
     return {
-      itemId: '',
-      cat_id: '',
-      goods_id: '',
-      salesType: '',
       sub_button: '',
-      sales_rate: '',
       sales_type: '',
       visible: false,
       delVisible: false,
       sale_show: false,
+      search_rsp_name: '',
       formParam: '',
-      catData: [],
-      goodsData: [],
       tableData: [],
-      newTableData: [],
       popshow: false,
       poptitle: '',
       current_rspid: '',
       pathHide: false,
-      saleTypes: [
-        { txt: 'セール中', value: 1 },
-        { txt: '全て', value: 0 }
-      ],
       checked: false,
       hidden: true,
-      new_cat_id: '',
-      new_goods_id: '',
-      newCatData: [],
-      newGoodsData: [],
       title: '',
       form: {
         delivery: false
@@ -196,54 +165,27 @@ export default {
     },
     // 選択条件リセット
     reset: function() {
-      this.cat_id = ''
-      this.goodsData = []
-      this.goods_id = ''
+      this.search_rsp_name = ''
     },
 
     // 品目検索
     search: async function() {
-      var that = this
       console.log(this.saleTypes)
 
       var req1 = {
         mode: 'select',
         selectsql:
-          "select rsp_id, rsp_name, rep_desp, rsp_img, rsp_metial from ns_rsp where delflg is null or delflg <> '1'"
+          "select rsp_id, rsp_name, rep_desp, rsp_img, rsp_metial from ns_rsp where (delflg is null or delflg <> '1') and rsp_name like '%" + this.search_rsp_name + "%'"
       }
       await this.axios
         .post(this.$baseUrl + '/web.do', req1)
         .then(response => {
           console.log(response.data)
-          that.newTableData = response.data.data
+          this.tableData = response.data.data
         })
         .catch(response => {
           console.log('Homepage getGoodsRsp  error!' + response)
         })
-
-      this.tableData = this.newTableData
-
-      return this.tableData
-    },
-    catChanged: async function() {
-      this.goods_id = ''
-      var req = {
-        mode: 'select',
-        selectsql:
-          'select * from ns_goods where delflg is null and cat_id =' +
-          this.cat_id
-      }
-      await this.axios
-        .post(this.$baseUrl + '/web.do', req)
-        .then(response => {
-          console.log(response.data)
-          this.goodsData = response.data.data
-        })
-        .catch(response => {
-          console.log('Homepage getGoodsRsp  error!' + response)
-        })
-
-      return this.goodsData
     },
     itemDelete: async function(id) {
       console.log(id)
@@ -303,22 +245,6 @@ export default {
       console.log(this.tableData)
       this._getInit()
       return this.tableData
-    },
-    _getInit: async function() {
-      var req2 = {
-        mode: 'select',
-        selectsql: "select * from ns_cat where (delflg is null or delflg <> '1') and leaf_flag='1'"
-      }
-      await this.axios
-        .post(this.$baseUrl + '/web.do', req2)
-        .then(response => {
-          console.log(response.data)
-          this.catData = response.data.data
-        })
-        .catch(response => {
-          console.log('Homepage getGoodsRsp  error!' + response)
-        })
-      return this.catData
     },
     insertCencle: function() {
       this.pathHide = false
@@ -418,10 +344,8 @@ export default {
 
       this.pathHide = false
       this.visible = false
-      this.sales_rate = null
-      this.sales_type = '0'
       this.formParam = ''
-      this.search()
+      this.getInit()
     }
   }
 }

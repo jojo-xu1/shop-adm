@@ -29,14 +29,7 @@
                   <tr>
                     <td width="10px" />
                     <td>
-                      <el-select ref="sel_cat" v-model="cat_id" placeholder="カテゴリ名" @change="catChanged">
-                        <el-option
-                          v-for="colg in catData"
-                          :key="colg.cat_id"
-                          :label="colg.cat_name"
-                          :value="colg.cat_id"
-                        />
-                      </el-select>
+                      <el-cascader ref="myCascader" :props="fatherCatData" placeholder="カテゴリ" @change="catChanged" />
                       <el-select ref="sel_gds" v-model="goods_id" placeholder="商品名">
                         <el-option
                           v-for="goods in goodsData"
@@ -93,7 +86,7 @@
 </template>
 
 <script>
-
+import axios from 'axios'
 export default {
   name: 'RspPop',
   props: {
@@ -115,6 +108,39 @@ export default {
       rspjson: {},
       itemList: [],
       title: '',
+      fatherCatData: {
+        lazy: true,
+        lazyLoad(node, resolve) {
+          var req = {}
+          if (node.level === 0) {
+            req = {
+              mode: 'select',
+              selectsql: "select cat_id,cat_name,leaf_flag from ns_cat where parent_id = '0' and delflg is null "
+            }
+          } else {
+            req = {
+              mode: 'select',
+              selectsql: 'select cat_id,cat_name,leaf_flag from ns_cat where parent_id = ' + node.data.value
+            }
+          }
+          console.log(req)
+          var baseUrl = process.env.NODE_ENV === 'production' ? 'http://13.112.112.160:9080/test' : 'http://13.112.112.160:8080/test'
+          axios
+            .post(baseUrl + '/web.do', req)
+            .then(res => {
+              const cities = res.data.data.map(value => ({
+                value: value.cat_id,
+                label: value.cat_name,
+                leaf: value.leaf_flag === 1
+              }))
+              // 通过调用resolve将子节点数据返回，通知组件数据加载完成
+              resolve(cities)
+            })
+            .catch(err => {
+              console.log(err)
+            })
+        }
+      },
       catData: [],
       goodsData: [],
       cat_id: '',
@@ -243,17 +269,20 @@ export default {
       this.init()
     },
     catChanged: async function() {
+      if (this.$refs['myCascader'].getCheckedNodes()[0]) {
+        this.cat_id = this.$refs['myCascader'].getCheckedNodes()[0].data.value
+      }
       this.goods_id = ''
       var req = {
         mode: 'select',
         selectsql:
-              'select * from ns_goods where delflg is null and cat_id =' +
-              this.cat_id
+          'select * from ns_goods where delflg is null and cat_id =' +
+          this.cat_id
       }
       await this.axios
         .post(this.$baseUrl + '/web.do', req)
         .then(response => {
-          console.log(response.data)
+          console.log(response.data.data)
           this.goodsData = response.data.data
         })
         .catch(response => {

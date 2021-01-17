@@ -1,7 +1,12 @@
 <template>
   <div id="items">
     <span>カテゴリ :</span>
-    <el-cascader ref="myCascader" :props="fatherCatData" placeholder="カテゴリ" @change="catChanged" />
+    <el-cascader
+      ref="myCascader"
+      :props="fatherCatData"
+      placeholder="カテゴリ"
+      @change="catChanged"
+    />
 
     <span>商品 :</span>
     <el-select ref="sel_gds" v-model="goods_id" placeholder="商品名">
@@ -14,7 +19,12 @@
     </el-select>
     <span>タイムセール :</span>
     <el-select v-model="salesType" placeholder="全て">
-      <el-option v-for="slp in saleTypes" :key="slp.value" :label="slp.txt" :value="slp.value" />
+      <el-option
+        v-for="slp in saleTypes"
+        :key="slp.value"
+        :label="slp.txt"
+        :value="slp.value"
+      />
     </el-select>
     <br>
     <el-button type="primary" @click="search">检索</el-button>
@@ -42,33 +52,72 @@
       <el-table-column prop="itemimg" label="画像URL" width="120" />
       <el-table-column label="操作">
         <template slot-scope="scope">
-          <el-button size="mini" @click="itemUpdate(scope.row.item_id)">変更</el-button>
-          <el-popconfirm title="削除するか？" @onConfirm="itemDelete(scope.row.item_id)">
-            <el-button slot="reference" size="mini" type="danger">删除</el-button>
+          <el-button
+            size="mini"
+            @click="itemUpdate(scope.row.item_id)"
+          >変更</el-button>
+          <el-popconfirm
+            title="削除するか？"
+            @onConfirm="itemDelete(scope.row.item_id)"
+          >
+            <el-button
+              slot="reference"
+              size="mini"
+              type="danger"
+            >删除</el-button>
           </el-popconfirm>
         </template>
       </el-table-column>
     </el-table>
     <div>
-      <el-dialog :title="title" :close-on-click-modal="false" :visible.sync="visible" @close="insertCencle()">
+      <el-dialog
+        :title="title"
+        :close-on-click-modal="false"
+        :visible.sync="visible"
+        @close="insertCencle()"
+      >
         <el-form ref="form" :model="form" label-width="80px">
           <el-form-item label="カテゴリ" prop="cat">
-            <el-input v-show="itemupdate" v-model="form.cat_name" :disabled="true" />
-            <el-cascader v-show="iteminsert" ref="myCascader2" :props="fatherCatData" placeholder="カテゴリ" @change="newCatChanged" />
+            <el-input
+              v-show="itemupdate"
+              v-model="form.cat_name"
+              :disabled="true"
+            />
+            <el-cascader
+              v-show="iteminsert"
+              ref="myCascader2"
+              :props="fatherCatData"
+              placeholder="カテゴリ"
+              @change="newCatChanged"
+            />
           </el-form-item>
           <el-form-item label="商品" prop="goods">
-            <el-input v-show="itemupdate" v-model="form.goods_name" :disabled="true" />
+            <el-input
+              v-show="itemupdate"
+              v-model="form.goods_name"
+              :disabled="true"
+            />
             <el-input v-show="false" v-model="form.goods_id" :disabled="true" />
-            <el-select v-show="iteminsert" v-model="new_goods_id" placeholder="商品名">
+            <el-select
+              v-show="iteminsert"
+              v-model="new_goods_id"
+              placeholder="商品名"
+            >
               <el-option
                 v-for="goods in newGoodsData"
                 :key="goods.goods_id"
                 :label="goods.goods_name"
                 :value="goods.goods_id"
-              />
-            </el-select>&nbsp;
-            <el-checkbox v-model="checked" @change="rateShowToggle">タイムセール</el-checkbox>&nbsp;
-            <el-input v-show="sale_show" v-model="form.sales_rate" placeholder="セール率" />
+              /> </el-select>&nbsp;
+            <el-checkbox
+              v-model="checked"
+              @change="rateShowToggle"
+            >タイムセール</el-checkbox>&nbsp;
+            <el-input
+              v-show="sale_show"
+              v-model="form.sales_rate"
+              placeholder="セール率"
+            />
           </el-form-item>
           <el-form-item label="品目ID" hidden="true">
             <el-input v-model="form.item_id" />
@@ -77,10 +126,23 @@
             <el-input v-model="form.item_name" />
           </el-form-item>
           <el-form-item label="税抜き" prop="price">
-            <el-input v-model="form.price" @input="form.price=form.price.replace(/[^0-9+^\uFF10-\uFF19]+/g,'')" />
+            <el-input
+              v-model="form.price"
+              @input="
+                form.price = form.price.replace(/[^0-9+^\uFF10-\uFF19]+/g, '')
+              "
+            />
           </el-form-item>
           <el-form-item label="税込" prop="taxprice">
-            <el-input v-model="form.taxprice" @input="form.taxprice=form.taxprice.replace(/[^0-9+^\uFF10-\uFF19]+/g,'')" />
+            <el-input
+              v-model="form.taxprice"
+              @input="
+                form.taxprice = form.taxprice.replace(
+                  /[^0-9+^\uFF10-\uFF19]+/g,
+                  ''
+                )
+              "
+            />
           </el-form-item>
           <el-form-item label="単位" prop="unit">
             <el-input v-model="form.unit" />
@@ -105,7 +167,9 @@
             </div>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="onSubmit(form.item_id)">{{ sub_button }}</el-button>
+            <el-button type="primary" @click="onSubmit(form.item_id)">{{
+              sub_button
+            }}</el-button>
             <el-button @click="insertCencle()">キャンセル</el-button>
           </el-form-item>
         </el-form>
@@ -142,12 +206,15 @@ export default {
           if (node.level === 0) {
             req = {
               mode: 'select',
-              selectsql: "select cat_id,cat_name,leaf_flag from ns_cat where parent_id = '0' and delflg is null "
+              selectsql:
+                "select cat_id,cat_name,leaf_flag from ns_cat where parent_id = '0' and delflg is null "
             }
           } else {
             req = {
               mode: 'select',
-              selectsql: 'select cat_id,cat_name,leaf_flag from ns_cat where parent_id = ' + node.data.value
+              selectsql:
+                'select cat_id,cat_name,leaf_flag from ns_cat where parent_id = ' +
+                node.data.value
             }
           }
           console.log(req)
@@ -163,7 +230,7 @@ export default {
               // 通过调用resolve将子节点数据返回，通知组件数据加载完成
               resolve(cities)
             })
-            .catch(err => {
+            .catch((err) => {
               console.log(err)
             })
         }
@@ -189,9 +256,54 @@ export default {
     }
   },
   mounted: function() {
-    this.getInit()
+    if (this.$route.params.goods_id === undefined) {
+      this.getInit()
+    } else {
+      this.routeSearch()
+    }
   },
   methods: {
+    async routeSearch() {
+      var that = this
+      var req1 = {
+        mode: 'select',
+        selectsql:
+          'select im.item_id as item_id,im.item_name as item_name,im.sales_rate as sales_rate,im.sales_type as sales_type, im.item_desp as item_desp,im.price as price,im.taxprice as taxprice,im.unit as unit,im.itemimg as itemimg,' +
+          'gd.goods_name as goods_name,ct.cat_name as cat_name from ns_item im left join ns_goods gd on gd.goods_id = im.goods_id left join ns_cat ct on ct.cat_id = gd.cat_id ' +
+          "where (im.delflg is null or im.delflg = '') and gd.delflg is null and gd.goods_id =" +
+          // this.cat_id,
+          this.$route.params.goods_id
+      }
+      await this.axios
+        .post(this.$baseUrl + '/web.do', req1)
+        .then((response) => {
+          console.log(response.data)
+          that.newTableData = response.data.data
+        })
+        .catch((response) => {
+          console.log('Homepage getGoodsRsp  error!' + response)
+        })
+      this.tableData = this.newTableData
+      console.log('tableData--------' + this.tableData)
+      // レジ金額再計算
+      for (var item in this.tableData) {
+        if (this.tableData[item].sales_type === 0) {
+          this.tableData[item].last_price = this.tableData[item].taxprice
+        } else {
+          var temp =
+            this.tableData[item].taxprice * this.tableData[item].sales_rate
+          var temp1 = temp.toString().indexOf('.')
+          if (temp1 > 0) {
+            this.tableData[item].last_price = temp
+              .toString()
+              .substring(0, temp1)
+          } else {
+            this.tableData[item].last_price = temp
+          }
+        }
+      }
+      return this.tableData
+    },
     // 更新ボタン押下
     itemUpdate: async function(id) {
       this.visible = true
@@ -209,11 +321,11 @@ export default {
       }
       await this.axios
         .post(this.$baseUrl + '/web.do', req)
-        .then(response => {
+        .then((response) => {
           console.log(response.data)
           this.form = response.data.data[0]
         })
-        .catch(response => {
+        .catch((response) => {
           console.log('Homepage getGoodsRsp  error!' + response)
         })
       if (this.form.itemimg) {
@@ -258,11 +370,11 @@ export default {
           }
           await this.axios
             .post(this.$baseUrl + '/web.do', req1)
-            .then(response => {
+            .then((response) => {
               console.log(response.data)
               that.newTableData = response.data.data
             })
-            .catch(response => {
+            .catch((response) => {
               console.log('Homepage getGoodsRsp  error!' + response)
             })
         } else if (this.cat_id !== '' && this.goods_id !== '') {
@@ -276,11 +388,11 @@ export default {
           }
           await this.axios
             .post(this.$baseUrl + '/web.do', req2)
-            .then(response => {
+            .then((response) => {
               console.log(response.data)
               that.newTableData = response.data.data
             })
-            .catch(response => {
+            .catch((response) => {
               console.log('Homepage getGoodsRsp  error!' + response)
             })
         } else {
@@ -299,11 +411,11 @@ export default {
           }
           await this.axios
             .post(this.$baseUrl + '/web.do', req3)
-            .then(response => {
+            .then((response) => {
               console.log(response.data)
               that.newTableData = response.data.data
             })
-            .catch(response => {
+            .catch((response) => {
               console.log('Homepage getGoodsRsp  error!' + response)
             })
         } else if (this.goods_id.length === 0 && this.cat_id !== '') {
@@ -318,11 +430,11 @@ export default {
           }
           await this.axios
             .post(this.$baseUrl + '/web.do', req4)
-            .then(response => {
+            .then((response) => {
               console.log(response.data)
               that.newTableData = response.data.data
             })
-            .catch(response => {
+            .catch((response) => {
               console.log('Homepage getGoodsRsp  error!' + response)
             })
         } else if (this.cat_id !== '' && this.goods_id !== '') {
@@ -337,11 +449,11 @@ export default {
           }
           await this.axios
             .post(this.$baseUrl + '/web.do', req5)
-            .then(response => {
+            .then((response) => {
               console.log(response.data)
               that.newTableData = response.data.data
             })
-            .catch(response => {
+            .catch((response) => {
               console.log('Homepage getGoodsRsp  error!' + response)
             })
           console.log(this.tableData)
@@ -355,10 +467,13 @@ export default {
         if (this.tableData[item].sales_type === 0) {
           this.tableData[item].last_price = this.tableData[item].taxprice
         } else {
-          var temp = this.tableData[item].taxprice * this.tableData[item].sales_rate
+          var temp =
+            this.tableData[item].taxprice * this.tableData[item].sales_rate
           var temp1 = temp.toString().indexOf('.')
           if (temp1 > 0) {
-            this.tableData[item].last_price = temp.toString().substring(0, temp1)
+            this.tableData[item].last_price = temp
+              .toString()
+              .substring(0, temp1)
           } else {
             this.tableData[item].last_price = temp
           }
@@ -379,11 +494,11 @@ export default {
       }
       await this.axios
         .post(this.$baseUrl + '/web.do', req)
-        .then(response => {
+        .then((response) => {
           console.log(response.data.data)
           this.goodsData = response.data.data
         })
-        .catch(response => {
+        .catch((response) => {
           console.log('Homepage getGoodsRsp  error!' + response)
         })
 
@@ -398,16 +513,15 @@ export default {
       var req = {
         mode: 'select',
         selectsql:
-          'select * from ns_goods where delflg is null and cat_id =' +
-          catId
+          'select * from ns_goods where delflg is null and cat_id =' + catId
       }
       await this.axios
         .post(this.$baseUrl + '/web.do', req)
-        .then(response => {
+        .then((response) => {
           console.log(response.data)
           this.newGoodsData = response.data.data
         })
-        .catch(response => {
+        .catch((response) => {
           console.log('Homepage getGoodsRsp  error!' + response)
         })
       return this.newGoodsData
@@ -423,8 +537,8 @@ export default {
       }
       await this.axios
         .post(this.$baseUrl + '/web.do', req)
-        .then(response => {})
-        .catch(response => {
+        .then((response) => {})
+        .catch((response) => {
           console.log('Homepage getGoodsRsp  error!' + response)
         })
       console.log(req)
@@ -464,11 +578,11 @@ export default {
       }
       await this.axios
         .post(this.$baseUrl + '/web.do', req1)
-        .then(response => {
+        .then((response) => {
           console.log(response.data)
           this.newTableData = response.data.data
         })
-        .catch(response => {
+        .catch((response) => {
           console.log('Homepage getGoodsRsp  error!' + response)
         })
       this.tableData = this.newTableData
@@ -476,10 +590,13 @@ export default {
         if (this.tableData[item].sales_type === 0) {
           this.tableData[item].last_price = this.tableData[item].taxprice
         } else {
-          var temp = this.tableData[item].taxprice * this.tableData[item].sales_rate
+          var temp =
+            this.tableData[item].taxprice * this.tableData[item].sales_rate
           var temp1 = temp.toString().indexOf('.')
           if (temp1 > 0) {
-            this.tableData[item].last_price = temp.toString().substring(0, temp1)
+            this.tableData[item].last_price = temp
+              .toString()
+              .substring(0, temp1)
           } else {
             this.tableData[item].last_price = temp
           }
@@ -522,12 +639,12 @@ export default {
       if (this.formParam !== '') {
         await this.axios
           .post(this.$baseUrl + '/image-upload.do', this.formParam)
-          .then(response => {
+          .then((response) => {
             console.log('Upload success!')
             console.log(response.data)
             this.form.itemimg = response.data.item_path
           })
-          .catch(response => {
+          .catch((response) => {
             console.log('Upload error!' + response)
           })
         this.formParam = ''
@@ -557,8 +674,16 @@ export default {
             item_desp: this.form.item_desp,
             sales_rate: this.sales_rate,
             sales_type: this.sales_type,
-            price: numReg.test(this.form.price) ? this.form.price : this.form.price.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 65248) }),
-            taxprice: numReg.test(this.form.taxprice) ? this.form.taxprice : this.form.taxprice.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 65248) }),
+            price: numReg.test(this.form.price)
+              ? this.form.price
+              : this.form.price.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) {
+                return String.fromCharCode(s.charCodeAt(0) - 65248)
+              }),
+            taxprice: numReg.test(this.form.taxprice)
+              ? this.form.taxprice
+              : this.form.taxprice.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) {
+                return String.fromCharCode(s.charCodeAt(0) - 65248)
+              }),
             unit: this.form.unit,
             itemimg: this.form.itemimg
           }
@@ -566,8 +691,8 @@ export default {
         console.log(req)
         await this.axios
           .post(this.$baseUrl + '/web.do', req)
-          .then(response => {})
-          .catch(response => {
+          .then((response) => {})
+          .catch((response) => {
             console.log('Homepage getGoodsRsp  error!' + response)
           })
         console.log('update!')
@@ -583,8 +708,16 @@ export default {
             item_desp: this.form.item_desp,
             sales_rate: this.sales_rate,
             sales_type: this.sales_type,
-            price: numReg.test(this.form.price) ? this.form.price : this.form.price.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 65248) }),
-            taxprice: numReg.test(this.form.taxprice) ? this.form.taxprice : this.form.taxprice.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 65248) }),
+            price: numReg.test(this.form.price)
+              ? this.form.price
+              : this.form.price.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) {
+                return String.fromCharCode(s.charCodeAt(0) - 65248)
+              }),
+            taxprice: numReg.test(this.form.taxprice)
+              ? this.form.taxprice
+              : this.form.taxprice.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) {
+                return String.fromCharCode(s.charCodeAt(0) - 65248)
+              }),
             unit: this.form.unit,
             itemimg: this.form.itemimg
           }
@@ -592,10 +725,10 @@ export default {
 
         await this.axios
           .post(this.$baseUrl + '/web.do', req2)
-          .then(response => {
+          .then((response) => {
             console.log(response.data)
           })
-          .catch(response => {
+          .catch((response) => {
             console.log('Homepage getGoodsRsp  error!' + response)
           })
         console.log('submit!')

@@ -166,7 +166,7 @@ export const asyncRoutes = [
         path: 'goods-manager',
         component: () => import('@/views/prod/goodsManager'),
         name: 'goodsManager',
-        meta: { title: '商品管理', icon: 'edit' }
+        meta: { title: '商品分類管理', icon: 'edit' }
       },
       {
         path: 'item-manager',
@@ -191,6 +191,12 @@ export const asyncRoutes = [
         component: () => import('@/views/prod/menuSetting'),
         name: 'menuSetting',
         meta: { title: 'レシピ―', icon: 'edit' }
+      },
+      {
+        path: 'delivManager',
+        component: () => import('@/views/prod/delivManager'),
+        name: 'delivManager',
+        meta: { title: '配達管理', icon: 'edit' }
       }
     ]
   },
