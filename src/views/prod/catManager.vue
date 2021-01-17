@@ -24,22 +24,55 @@
           </button>
         </div>
         <div style="float: left">
-          <el-upload>
-            <el-button
-              slot="trigger"
-              size="small"
-              style="
+          <el-button
+            slot="trigger"
+            size="small"
+            style="
               background: white;
               height: 35px;
               border-radius: 4px;
               border: 1px solid black;
               color: black;
             "
-            >
-              <i class="el-icon-upload"> CSVアップロード</i>
-            </el-button>
-          </el-upload>
+            @click="handleUpload()"
+          >
+            <i class="el-icon-upload"> CSVアップロード</i>
+          </el-button>
         </div>
+        <el-dialog
+          title="CSVアップロード"
+          :visible.sync="uploadvisible"
+          width="30%"
+          :close-on-click-modal="false"
+          :before-close="handleClose"
+        >
+          <el-upload
+            ref="upload"
+            class="upload-demo"
+            action=""
+            :on-preview="handlePreview"
+            :on-remove="handleRemove"
+            :file="file"
+            :auto-upload="false"
+            accept=".csv"
+            :multiple="false"
+            :limit="1"
+            :on-change="handleChange"
+          >
+            <el-button
+              slot="trigger"
+              size="small"
+              type="primary"
+            >File Select</el-button>
+            <el-button
+              style="margin-left: 10px"
+              size="small"
+              type="success"
+              @click="submitUpload"
+            >Upload</el-button>
+            <div slot="tip" class="el-upload__tip">Only CSV File</div>
+          </el-upload>
+        </el-dialog>
       </div>
     </div>
     <el-row :gutter="15">
@@ -161,10 +194,13 @@ export default {
         leaf_flag: ''
       },
       editvisible: false,
+      uploadvisible: false,
       form: {
         delivery: false,
         cat_id: ''
       },
+      file: [],
+      fileList: [],
       defaultProps: {
         // children: 'children',
         label: 'cat_name'
@@ -181,6 +217,9 @@ export default {
     this.refresh(0)
   },
   methods: {
+    handlePreview(file) {
+      console.log(file)
+    },
     async  loadNode(node, resolve) {
       if (node.level === 0) {
         this.node_had = node
@@ -213,6 +252,139 @@ export default {
         console.log(response)
       })
     // console.log(this.list)
+    },
+    handleChange(file, fileList) {
+      this.fileTemp = file.raw
+      if (this.fileTemp) {
+        if (
+          this.fileTemp.type ===
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+          this.fileTemp.type === 'application/vnd.ms-excel'
+        ) {
+          this.importfxx(this.fileTemp)
+        } else {
+          this.$message({
+            type: 'warning',
+            message: '附件格式错误，请删除后重新上传！'
+          })
+        }
+      } else {
+        this.$message({
+          type: 'warning',
+          message: '请上传附件！'
+        })
+      }
+    },
+    importfxx(obj) {
+      const _this = this
+      // const inputDOM = this.$refs.inputer // 通过DOM取文件数据
+      this.file = event.currentTarget.files[0]
+
+      var rABS = false // 是否将文件读取为二进制字符串
+      var f = this.file
+
+      var reader = new FileReader() // if (!FileReader.prototype.readAsBinaryString) {
+      FileReader.prototype.readAsBinaryString = function(f) {
+        var binary = ''
+        var rABS = false // 是否将文件读取为二进制字符串
+        // var pt = this
+        var wb // 读取完成的数据
+        var outdata
+        var reader = new FileReader()
+        reader.onload = function(e) {
+          var bytes = new Uint8Array(reader.result)
+          var length = bytes.byteLength
+          for (var i = 0; i < length; i++) {
+            binary += String.fromCharCode(bytes[i])
+          }
+          var XLSX = require('xlsx')
+          if (rABS) {
+            wb = XLSX.read(btoa(this.fixdata(binary)), {
+              // 手动转化
+              type: 'base64'
+            })
+          } else {
+            wb = XLSX.read(binary, {
+              type: 'binary'
+            })
+          }
+          outdata = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]) // outdata就是你想要的东西
+          console.log('未处理的原始数据如下：')
+          console.log(outdata) // 此处可对数据进行处理
+          const arr = []
+          outdata.map((v) => {
+            const obj = {}
+            obj.cat_id = v['cat_id']
+            obj.cat_name = v['cat_name']
+            obj.parient_id = v['parient_id']
+            obj.leaf_flag = v['leaf_flag']
+            arr.push(obj)
+          })
+          _this.da = arr
+          _this.dalen = arr.length
+          return arr
+        }
+        reader.readAsArrayBuffer(f)
+      }
+      if (rABS) {
+        reader.readAsArrayBuffer(f)
+      } else {
+        reader.readAsBinaryString(f)
+      }
+    },
+    fixdata(data) { // 文件流转BinaryString
+      var o = ''
+      var l = 0
+      var w = 10240
+      for (; l < data.byteLength / w; ++l) o += String.fromCharCode.apply(null, new Uint8Array(data.slice(l * w, l * w + w)))
+      o += String.fromCharCode.apply(null, new Uint8Array(data.slice(l * w)))
+      return o
+    },
+    handleUpload() {
+      // console.log(this.msg)
+      this.uploadvisible = true
+      // console.log(this.$refs.upload.files)
+    },
+    async submitUpload() {
+      var formData = new FormData()
+      formData.append('file', this.file)
+      console.log('file:', this.file)
+      console.log('url:', this.$baseUrl)
+      formData.append('tab', 'ns_cat')
+      formData.append('cols', 4)
+      console.log('url:', this.$baseUrl)
+      await this.axios
+        .post(this.$baseUrl + '/csvupload', formData)
+        .then((response) => {
+          console.log('Upload success!')
+          console.log(response.data)
+          this.$message({
+            type: 'success',
+            message: 'CSV UPLOADしました '
+          })
+        })
+        .catch((response) => {
+          console.log('Upload error!' + response)
+        })
+      // 清空上传表
+      this.file = []
+      this.$refs.upload.clearFiles()
+    },
+    clearFile() {
+      this.$refs.clearFile.value = '' // 清空file文件
+    },
+    handleRemove() {
+      this.$refs.upload.clearFiles()
+    },
+
+    handleClose(done) {
+      this.$confirm('CSVアップロードやめますか')
+        .then((_) => {
+          this.file = []
+          this.$refs.upload.clearFiles()
+          done()
+        })
+        .catch((_) => {})
     },
     async addCat() {
       var reb = {
