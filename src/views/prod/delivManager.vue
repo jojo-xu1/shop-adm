@@ -37,6 +37,7 @@
                 <option value="0">未出荷</option>
                 <option value="1">出荷済み</option>
                 <option value="2">配達済み</option>
+                <option value="3">キャンセル</option>
               </select>
 
               <button
@@ -58,31 +59,30 @@
                 <thead class="thead-dark">
                   <tr>
                     <td>UserID</td>
-                    <td>注文ID</td>
-                    <td>STATUS</td>
+                    <td>注文番号</td>
+                    <td>配達状態</td>
                     <td>OPTION</td>
                   </tr>
                 </thead>
                 <draggable v-model="list" tag="tbody">
-                  <tr v-for="item in list" :key="item.UserID">
+                  <tr v-for="(item, index) in list" :key="item.UserID">
                     <td scope="row">{{ item.user_id }}</td>
                     <td>
-                      <el-link type="primary" @click="showList(item.order_id)">
+                      <el-link
+                        type="primary"
+                        @click="
+                          getOrder(item.order_id);
+                          orderVisible = true;
+                        "
+                      >
                         {{ item.order_id }}
                       </el-link>
                     </td>
                     <td>{{ item.status }}</td>
                     <td>
-                      <select v-model="selected">
-                        <option> --请选择-- </option>
-                        <option> 0: '未出荷' </option>
-                        <option> 1: '出荷済み' </option>
-                        <option> 2: '配達済み' </option>
-                        <option> 3: 'キャンセル' </option>
-                      </select>
                       <el-button
                         size="mini"
-                        @click="itemUpdate(scope.row.item_id)"
+                        @click="handleEdit(item.order_id, index)"
                       >変更</el-button>
                     </td>
                   </tr>
@@ -102,7 +102,6 @@
     >
       <el-form
         ref="userinfo"
-        :model="userinfo"
         status-icon
         label-width="100px"
         class="demo-ruleForm"
@@ -119,17 +118,64 @@
         <el-form-item label="住所" prop="user_address">
           <span>{{ userinfo.user_address }}</span>
         </el-form-item>
+        <el-form-item label="配達状態" prop="status">
+          <span>{{ userinfo.user_address }}</span>
+        </el-form-item>
       </el-form>
       <el-table :data="orderList" show-summary style="width: 100%">
-        <el-table-column prop="goods_id" label="id" width="180" />
-        <el-table-column prop="goods_name" label="name" width="180" />
-        <el-table-column prop="price" label="price" />
+        <el-table-column prop="item_name" label="商品名" width="180" />
+        <el-table-column prop="item_num" label="数量" width="180" />
+        <el-table-column prop="item_price" label="合計" />
+      </el-table>
+    </el-dialog>
+
+    <el-dialog
+      title="配達状態変更"
+      :visible.sync="editVisible"
+      width="40%"
+      :close-on-click-modal="false"
+    >
+      <el-form
+        ref="orderList"
+        status-icon
+        label-width="100px"
+        class="demo-ruleForm"
+      >
+        <el-form-item label="名前" prop="user_name">
+          <span>{{ userinfo.user_name }}</span>
+        </el-form-item>
+        <el-form-item label="電話番号" prop="user_phone">
+          <span>{{ userinfo.user_phone }}</span>
+        </el-form-item>
+        <el-form-item label="配達指示" prop="user_comment">
+          <span>{{ userinfo.user_comment }}</span>
+        </el-form-item>
+        <el-form-item label="住所" prop="user_address">
+          <span>{{ userinfo.user_address }}</span>
+        </el-form-item>
+        <el-form-item label="配達状態">
+          <el-select v-model="editform.status">
+            <el-option label="未出荷" value="0" />
+            <el-option label="出荷中" value="1" />
+            <el-option label="配達済み" value="2" />
+            <el-option label="キャンセル" value="3" />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="onSubmit">変更</el-button>
+        </el-form-item>
+      </el-form>
+      <el-table :data="orderList" show-summary style="width: 100%">
+        <el-table-column prop="item_name" label="商品名" width="180" />
+        <el-table-column prop="item_num" label="数量" width="180" />
+        <el-table-column prop="item_price" label="合計" />
       </el-table>
     </el-dialog>
   </div>
 </template>
 
 <script>
+// import { status } from 'nprogress'
 import draggable from 'vuedraggable'
 export default {
   name: 'DeliManager',
@@ -137,6 +183,7 @@ export default {
   data() {
     return {
       orderVisible: false,
+      editVisible: false,
       dragging: false,
       order_id: '',
       status: '',
@@ -145,43 +192,34 @@ export default {
       list: [],
       orderstatus: [
         { 0: '未出荷' },
-        { 1: '出荷済み' },
+        { 1: '輸送中' },
         { 2: '配達済み' },
         { 3: 'キャンセル' }
-      ], // 三元表达式
+      ],
       selected: '',
       address: [{}],
-      orderList: [
-        {
-          goods_id: '11',
-          goods_name: '国内産 きゅうり 3本入 1袋',
-          price: '204'
-        },
-        {
-          goods_id: '22',
-          goods_name: '刺身酱油2本',
-          price: '865'
-        },
-        {
-          goods_id: '33',
-          goods_name: '胡瓜20本 名古屋',
-          price: '680'
-        },
-        {
-          goods_id: '44',
-          goods_name: '生醤油２本　北海道産',
-          price: '658'
-        }
-      ],
+      orderList: [],
       user_name: '',
       user_phone: '',
       user_comment: '',
       user_address: '',
+      price: '',
+      item_name: '',
+      statusname: '',
+      item_num: '',
+      item_price: '',
+      editform: {
+        status: ''
+      },
       userinfo: {
         user_name: 'Alice',
         user_phone: '000-111-888',
         user_comment: '午前',
         user_address: 'XXX'
+      },
+      form: {
+        delivery: false,
+        order_id: ''
       }
     }
   },
@@ -190,6 +228,7 @@ export default {
   },
   methods: {
     async reFresh() {
+      var that = this
       var reqlist = {
         mode: 'select',
         selectsql:
@@ -199,30 +238,47 @@ export default {
         .post(this.$baseUrl + '/web.do', reqlist)
         .then((response) => {
           console.log(' 初始表： ', response.data)
-          this.list = response.data.data
+          that.list = response.data.data
           // this.list = this.goodslist;
-          console.log(' list: ', this.list)
-          this.setlist()
+          console.log(' list: ', that.list)
+          that.setlist()
+          that.statusname
+          for (var i = 0; i < that.list.length; i++) {
+            if (that.status === 0) {
+              that.statusname = '未発送'
+            } else if (that.status === 1) {
+              that.statusname = '輸送中'
+            } else if (that.status === 2) {
+              that.statusname = '到着'
+            } else {
+              that.statusname = 'キャンセル'
+            }
+          }
         })
         .catch((response) => {
           console.log(response)
         })
     },
-    async getOrder() {
+    async getOrder(order_id) {
+      var that = this
       var reqlist = {
         mode: 'select',
         selectsql:
-          " select d.order_id, d.status, t.item_name, t.item_desp, t.item_price, t.item_num, o.price, s.username from ns_dlv d left join ns_order_detail t on d.order_id = t.order_id left join ns_order o on d.order_id = o.order_id left join sys_users u on u.id = o.user_id where d.last_flg = '1' and (o.delflg is null or o.delflg <> '1') and (u.deleted is null or u.deleted <> '1') "
+          " select d.status, o.price, t.item_name, t.item_num, t.item_price from ns_dlv d left join ns_order o on d.order_id = o.order_id left join ns_order_detail t on d.order_id = t.order_id where d.order_id = '" +
+          order_id +
+          "' and d.last_flg = 1 and (o.delflg is null or o.delflg <> '1') "
       }
       await this.axios
         .post(this.$baseUrl + '/web.do', reqlist)
         .then((response) => {
-          console.log(' 初始表： ', response.data)
-          this.orderList = response.data.data
-          // this.list = this.goodslist;
-          console.log(' list: ', this.list)
-          console.log(' goodslist： ', this.orderList)
-          this.setlist()
+          that.orderList = response.data.data
+          for (var i = 0; i <= that.orderList.length; i++) {
+            that.orderList[i].item_price =
+              that.orderList[i].item_price * that.orderList[i].item_num
+          }
+          console.log(' list: ', that.list)
+          console.log(' 商品列表： ', that.orderList)
+          that.setlist()
         })
         .catch((response) => {
           console.log(response)
@@ -240,9 +296,60 @@ export default {
     closeList() {
       this.orderVisible = false
     },
-    orderChanged() {
-      this.STATUS = 1
+    async handleEdit(order_id, index) {
+      console.log('index:', index)
+      console.log('id:', order_id)
+      this.form.order_id = order_id
+      var that = this
+      var reqlist = {
+        mode: 'select',
+        selectsql:
+          " select d.status, o.price, t.item_name, t.item_num, t.item_price from ns_dlv d left join ns_order o on d.order_id = o.order_id left join ns_order_detail t on d.order_id = t.order_id where d.order_id = '" +
+          order_id +
+          "' and d.last_flg = 1 and (o.delflg is null or o.delflg <> '1') "
+      }
+      await this.axios
+        .post(this.$baseUrl + '/web.do', reqlist)
+        .then((response) => {
+          that.orderList = response.data.data
+          console.log('response.data.data', response.data.data)
+          for (var i = 0; i < that.orderList.length; i++) {
+            that.orderList[i].item_price = that.orderList[i].item_price * that.orderList[i].item_num
+          }
+          that.editVisible = true
+          console.log('aaaaaaaaaaa')
+          console.log('%c%s', 'color: red; background: yellow; font-size: 24px;', index)
+          console.log('orderList', that.orderList)
+          that.editform.status = that.orderList[0].status
+          console.log('xxxxxxxxxxxxx')
+          console.log('status:', that.orderList[0].status)
+        })
+        .catch((response) => {
+          console.log(response)
+        })
+    },
+    async onSubmit() {
+      console.log('SubmitTest:status=', this.form.status)
+      var status = {}
+      status.status = this.editform.status
+      var dataNewstatus = {}
+      dataNewstatus.mode = 'update'
+      dataNewstatus.tableName = 'ns_dlv'
+      dataNewstatus.data = status
+      dataNewstatus.wheresql = ' order_id = ' + this.form.order_id
+      console.log('dataNewstatus', dataNewstatus)
+      await this.axios
+        .post(this.$baseUrl + '/web.do', dataNewstatus)
+        .then(function(resp) {
+          console.log('resp信息：', resp)
+          var data = {}
+          data.status = status
+        })
+      console.log('BBBBBBBBBBBBBBBBBBBBBBBBB')
+      this.reFresh()
+      this.editVisible = false
     }
+
   }
 }
 </script>
