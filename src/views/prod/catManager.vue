@@ -16,7 +16,7 @@
             "
           >
             <a
-              :href="this.$baseUrl + '/downloadcsv?sql=select cat_id, cat_name, parent_id, leaf_flag from ns_cat where delflg is null or delflg <> 1'"
+              :href="this.$baseUrl + '/downloadcsv?sql=select cat_id, cat_name, parent_id, leaf_flag, ns_cat.order_by from ns_cat where delflg is null or delflg <> 1 order by order_by'"
             >
               <i class="el-icon-download" />
               CSVダウンロード
@@ -119,10 +119,10 @@
                     <td><el-link type="primary" @click="setlist(item.cat_id,0)">{{ item.cat_name }}</el-link></td>
                     <td scope="row">{{ item.leaf_flag==1 ?"なし":"あり" }}</td>
                     <td>
-                      <el-button size="mini" @click="catUp(item.cat_id)">↑</el-button>
+                      <el-button size="mini" @click="catUp(item.cat_id, item.order_by)">↑</el-button>
                     </td>
                     <td>
-                      <el-button size="mini" @click="catDown(item.cat_id)">↓</el-button>
+                      <el-button size="mini" @click="catDown(item.cat_id, item.order_by)">↓</el-button>
                     </td>
                     <td>
                       <el-button size="mini" @click="catUpdate(item.cat_id,item.cat_name,index)">変更</el-button>
@@ -199,6 +199,14 @@ export default {
         delivery: false,
         cat_id: ''
       },
+      orderForm1: {
+        cat_id: '',
+        order_by: 0
+      },
+      orderForm2: {
+        cat_id: '',
+        order_by: 0
+      },
       file: [],
       fileList: [],
       defaultProps: {
@@ -226,7 +234,7 @@ export default {
         this.resove_had = resolve
         var req = {
           'mode': 'select',
-          'selectsql': 'select cat_id, cat_name, parent_id,leaf_flag from ns_cat where delflg=0 or delflg is null'
+          'selectsql': 'select cat_id, cat_name, parent_id,leaf_flag,ns_cat.order_by from ns_cat where delflg=0 or delflg is null order by order_by'
         }
         await this.axios.post(this.$baseUrl + '/web.do', req).then((response) => {
           console.log(response.data)
@@ -241,7 +249,7 @@ export default {
     async refresh(parent_id) {
       var req = {
         'mode': 'select',
-        'selectsql': 'select cat_id, cat_name, parent_id,leaf_flag from ns_cat where parent_id= ' + parent_id + ' and (delflg=0 or delflg is null)'
+        'selectsql': 'select cat_id, cat_name, parent_id,leaf_flag,ns_cat.order_by from ns_cat where parent_id= ' + parent_id + ' and (delflg=0 or delflg is null) order by order_by'
       }
       await this.axios.post(this.$baseUrl + '/web.do', req).then((response) => {
         console.log(response.data)
@@ -401,10 +409,27 @@ export default {
       if (!temp) {
         temp = { leaf_flag: 0 }
       }
+
+      var req = {
+        'mode': 'select',
+        'selectsql': 'select order_by from ns_cat where parent_id= ' + this.currentid + ' order by order_by desc'
+      }
+      var child
+      var orderBy = -1
+      await this.axios.post(this.$baseUrl + '/web.do', req).then((response) => {
+        child = response.data.data[0]
+      }).catch((response) => {
+        console.log(response)
+      })
+      if (child) {
+        orderBy = child.order_by
+      }
+
       var cat = {}
       cat.parent_id = this.currentid
       cat.cat_name = document.getElementById('new-todo').value
       cat.leaf_flag = document.getElementById('selected').value
+      cat.order_by = orderBy + 1
       var data = {}
       data.mode = 'insert'
       data.tableName = 'ns_cat'
@@ -429,6 +454,61 @@ export default {
       } else {
         alert('カテゴリを所属する商品がありますので、子カテゴリの新規作成はできません')
       }
+    },
+    catUp(cat_id, order_by) {
+      var index = this.list.findIndex(function(cat) {
+        return cat.cat_id === cat_id
+      })
+      if (index > 0) {
+        this.updateOrder(cat_id, this.list[index - 1].cat_id, order_by, this.list[index - 1].order_by)
+      }
+    },
+    catDown(cat_id, order_by) {
+      var index = this.list.findIndex(function(cat) {
+        return cat.cat_id === cat_id
+      })
+      if (index < this.list.length - 1) {
+        this.updateOrder(cat_id, this.list[index + 1].cat_id, order_by, this.list[index + 1].order_by)
+      }
+    },
+    async updateOrder(cat_id1, cat_id2, order1, order2) {
+      console.log(cat_id1)
+      var req1 = {
+        rscode: 'ok',
+        mode: 'update',
+        tableName: 'ns_cat',
+        wheresql: 'cat_id =' + cat_id1,
+        data: { order_by: order2 } // swap order1 and order2
+      }
+      var req2 = {
+        rscode: 'ok',
+        mode: 'update',
+        tableName: 'ns_cat',
+        wheresql: 'cat_id =' + cat_id2,
+        data: { order_by: order1 } // swap order1 and order2
+      }
+      await this.axios
+        .post(this.$baseUrl + '/web.do', req1)
+        .then(this.axios
+          .post(this.$baseUrl + '/web.do', req2)
+          .then(response => {
+            var req = {
+              'mode': 'select',
+              'selectsql': 'select cat_id, cat_name, parent_id,leaf_flag,ns_cat.order_by from ns_cat where delflg=0 or delflg is null order by order_by'
+            }
+            this.axios.post(this.$baseUrl + '/web.do', req).then((response) => {
+              this.listall = response.data.data
+            }).catch((response) => {
+            })
+            this.refresh(this.currentid)
+            this.setlist(this.currentid, 1)
+            this.node_had.childNodes = []
+            this.loadNode(this.node_had, this.resove_had)
+          })
+          .catch(response => {
+          })
+        )
+      this.getnode(0)
     },
     catUpdate(cat_id, cat_name, index) {
       this.editvisible = true
@@ -457,7 +537,7 @@ export default {
         .then(response => {
           var req = {
             'mode': 'select',
-            'selectsql': 'select cat_id, cat_name, parent_id,leaf_flag from ns_cat where delflg=0 or delflg is null'
+            'selectsql': 'select cat_id, cat_name, parent_id,leaf_flag,ns_cat.order_by from ns_cat where delflg=0 or delflg is null order by order_by'
           }
           this.axios.post(this.$baseUrl + '/web.do', req).then((response) => {
             console.log(response.data)
@@ -503,7 +583,7 @@ export default {
           .then(response => {
             var req = {
               'mode': 'select',
-              'selectsql': 'select cat_id, cat_name, parent_id,leaf_flag from ns_cat where delflg=0 or delflg is null'
+              'selectsql': 'select cat_id, cat_name, parent_id,leaf_flag,ns_cat.order_by from ns_cat where delflg=0 or delflg is null order by order_by'
             }
 
             this.axios.post(this.$baseUrl + '/web.do', req).then((response) => {
