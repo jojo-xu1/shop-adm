@@ -177,6 +177,28 @@
 <script>
 // import { status } from 'nprogress'
 import draggable from 'vuedraggable'
+import Vue from 'vue'
+Vue.filter('dataFormat', function(value, fmt) {
+  const getDate = new Date(value)
+  const o = {
+    'M+': getDate.getMonth() + 1,
+    'd+': getDate.getDate(),
+    'h+': getDate.getHours(),
+    'm+': getDate.getMinutes(),
+    's+': getDate.getSeconds(),
+    'q+': Math.floor((getDate.getMonth() + 3) / 3),
+    'S': getDate.getMilliseconds()
+  }
+  if (/(y+)/.test(fmt)) {
+    fmt = fmt.replace(RegExp.$1, (getDate.getFullYear() + '').substr(4 - RegExp.$1.length))
+  }
+  for (const k in o) {
+    if (new RegExp('(' + k + ')').test(fmt)) {
+      fmt = fmt.replace(RegExp.$1, (RegExp.$1.length === 1) ? (o[k]) : (('00' + o[k]).substr(('' + o[k]).length)))
+    }
+  }
+  return fmt
+})
 export default {
   name: 'DeliManager',
   components: { draggable },
@@ -296,6 +318,21 @@ export default {
     closeList() {
       this.orderVisible = false
     },
+    formatDate(value) {
+      const date = new Date(value)
+      const y = date.getFullYear()
+      let MM = date.getMonth() + 1
+      MM = MM < 10 ? '0' + MM : MM
+      let d = date.getDate()
+      d = d < 10 ? '0' + d : d
+      let h = date.getHours()
+      h = h < 10 ? '0' + h : h
+      let m = date.getMinutes()
+      m = m < 10 ? '0' + m : m
+      let s = date.getSeconds()
+      s = s < 10 ? '0' + s : s
+      return y + '-' + MM + '-' + d + ' ' + h + ':' + m + ':' + s
+    },
     async handleEdit(order_id, index) {
       console.log('index:', index)
       console.log('id:', order_id)
@@ -314,11 +351,16 @@ export default {
           that.orderList = response.data.data
           console.log('response.data.data', response.data.data)
           for (var i = 0; i < that.orderList.length; i++) {
-            that.orderList[i].item_price = that.orderList[i].item_price * that.orderList[i].item_num
+            that.orderList[i].item_price =
+              that.orderList[i].item_price * that.orderList[i].item_num
           }
           that.editVisible = true
           console.log('aaaaaaaaaaa')
-          console.log('%c%s', 'color: red; background: yellow; font-size: 24px;', index)
+          console.log(
+            '%c%s',
+            'color: red; background: yellow; font-size: 24px;',
+            index
+          )
           console.log('orderList', that.orderList)
           that.editform.status = that.orderList[0].status
           console.log('xxxxxxxxxxxxx')
@@ -329,27 +371,53 @@ export default {
         })
     },
     async onSubmit() {
-      console.log('SubmitTest:status=', this.form.status)
-      var status = {}
-      status.status = this.editform.status
-      var dataNewstatus = {}
-      dataNewstatus.mode = 'update'
-      dataNewstatus.tableName = 'ns_dlv'
-      dataNewstatus.data = status
-      dataNewstatus.wheresql = ' order_id = ' + this.form.order_id
-      console.log('dataNewstatus', dataNewstatus)
+      // console.log("SubmitTest:status=", this.form.status);
+      // 修改旧状态flg
+      var oldStatus = {}
+      oldStatus.last_flg = 0
+      var req2 = {
+        mode: 'update',
+        tableName: 'ns_dlv',
+        data: oldStatus,
+        wheresql: ' order_id = ' + this.form.order_id + ' and last_flg = 1 '
+      }
       await this.axios
-        .post(this.$baseUrl + '/web.do', dataNewstatus)
-        .then(function(resp) {
-          console.log('resp信息：', resp)
-          var data = {}
-          data.status = status
+        .post(this.$baseUrl + '/web.do', req2)
+        .then((response) => {
+          console.log('RESPONSE.DATA:', response.data)
+          //  插入新状态flg
+          var date1 = new Date()
+          var dateTime = this.formatDate(Date.parse(date1))
+          var orderInfoId = Math.round(Math.random() * 10000000000)
+          console.log(orderInfoId)
+          var statusdata = {}
+          statusdata.order_id = this.form.order_id
+          statusdata.status = this.editform.status
+          statusdata.last_flg = 1
+          statusdata.createtime = dateTime
+          statusdata.createtime = dateTime
+          var dataNewstatus = {}
+          dataNewstatus.mode = 'insert'
+          dataNewstatus.tableName = 'ns_dlv'
+          dataNewstatus.data = statusdata
+          console.log('dataNewstatus', dataNewstatus)
+          this.axios
+            .post(this.$baseUrl + '/web.do', dataNewstatus)
+            .then(function(resp) {
+              console.log('resp信息：', resp)
+              // var data = {};
+              // data.status = status;
+            })
+          console.log('插入新状态OK')
         })
-      console.log('BBBBBBBBBBBBBBBBBBBBBBBBB')
+        .catch((response) => {
+          console.log('Homepage getGoodsRsp  error!' + response)
+        })
+      console.log('旧状态变更ok')
+
       this.reFresh()
       this.editVisible = false
     }
-
   }
 }
 </script>
