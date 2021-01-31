@@ -14,13 +14,11 @@
           <div id="todo-list-example">
             <form @submit.prevent="orderSearch">
               注文ID：
-              <el-input
-                v-model="IDsearch"
-                style="width: 200px"
-                prefix-icon="el-icon-search"
-                size="small"
+              <input
+                id="IDsearch"
+                style="height: 35px; magin-left: 5px"
                 placeholder=" "
-              />
+              >
 
               注文状態:
               <select
@@ -75,10 +73,10 @@
                           orderVisible = true;
                         "
                       >
-                        {{ item.order_id }}
+                        {{ item.order_info_id }}
                       </el-link>
                     </td>
-                    <td>{{ item.status }}</td>
+                    <td>{{ statusName(item.status) }}</td>
                     <td>
                       <el-button
                         size="mini"
@@ -101,28 +99,32 @@
       :close-on-click-modal="false"
     >
       <el-form
-        ref="userinfo"
         status-icon
         label-width="100px"
         class="demo-ruleForm"
       >
-        <el-form-item label="名前" prop="user_name">
-          <span>{{ userinfo.user_name }}</span>
+        <el-form-item label="名前">
+          <span>{{ userinfo[0].user_id }}</span>
         </el-form-item>
-        <el-form-item label="電話番号" prop="user_phone">
-          <span>{{ userinfo.user_phone }}</span>
+        <el-form-item label="電話番号">
+          <span>{{ userinfo[0].number }}</span>
         </el-form-item>
-        <el-form-item label="配達指示" prop="user_comment">
-          <span>{{ userinfo.user_comment }}</span>
+        <el-form-item label="配達指示">
+          <span>{{ userinfo[0].arrival_time }}</span>
         </el-form-item>
-        <el-form-item label="住所" prop="user_address">
-          <span>{{ userinfo.user_address }}</span>
+        <el-form-item label="住所">
+          <span>{{ userinfo[0].dlv_address }}</span>
         </el-form-item>
-        <el-form-item label="配達状態" prop="status">
-          <span>{{ userinfo.user_address }}</span>
+        <el-form-item label="配達状態">
+          <span>{{ statusName(userinfo[0].status) }}</span>
         </el-form-item>
       </el-form>
-      <el-table :data="orderList" show-summary style="width: 100%">
+      <el-table
+        :data="orderList"
+        show-summary
+        sum-text="合計"
+        style="width: 100%"
+      >
         <el-table-column prop="item_name" label="商品名" width="180" />
         <el-table-column prop="item_num" label="数量" width="180" />
         <el-table-column prop="item_price" label="合計" />
@@ -136,22 +138,24 @@
       :close-on-click-modal="false"
     >
       <el-form
-        ref="orderList"
         status-icon
         label-width="100px"
         class="demo-ruleForm"
       >
-        <el-form-item label="名前" prop="user_name">
-          <span>{{ userinfo.user_name }}</span>
+        <el-form-item label="名前">
+          <span>{{ userinfo[0].user_id }}</span>
         </el-form-item>
-        <el-form-item label="電話番号" prop="user_phone">
-          <span>{{ userinfo.user_phone }}</span>
+        <el-form-item label="電話番号">
+          <span>{{ userinfo[0].number }}</span>
         </el-form-item>
-        <el-form-item label="配達指示" prop="user_comment">
-          <span>{{ userinfo.user_comment }}</span>
+        <el-form-item label="配達指示">
+          <span>{{ userinfo[0].arrival_time }}</span>
         </el-form-item>
-        <el-form-item label="住所" prop="user_address">
-          <span>{{ userinfo.user_address }}</span>
+        <el-form-item label="住所">
+          <span>{{ userinfo[0].dlv_address }}</span>
+        </el-form-item>
+        <el-form-item label="配達状態">
+          <span>{{ statusName(userinfo[0].status) }}</span>
         </el-form-item>
         <el-form-item label="配達状態">
           <el-select v-model="editform.status">
@@ -165,7 +169,12 @@
           <el-button type="primary" @click="onSubmit">変更</el-button>
         </el-form-item>
       </el-form>
-      <el-table :data="orderList" show-summary style="width: 100%">
+      <el-table
+        :data="orderList"
+        show-summary
+        sum-text="合計"
+        style="width: 100%"
+      >
         <el-table-column prop="item_name" label="商品名" width="180" />
         <el-table-column prop="item_num" label="数量" width="180" />
         <el-table-column prop="item_price" label="合計" />
@@ -187,14 +196,20 @@ Vue.filter('dataFormat', function(value, fmt) {
     'm+': getDate.getMinutes(),
     's+': getDate.getSeconds(),
     'q+': Math.floor((getDate.getMonth() + 3) / 3),
-    'S': getDate.getMilliseconds()
+    S: getDate.getMilliseconds()
   }
   if (/(y+)/.test(fmt)) {
-    fmt = fmt.replace(RegExp.$1, (getDate.getFullYear() + '').substr(4 - RegExp.$1.length))
+    fmt = fmt.replace(
+      RegExp.$1,
+      (getDate.getFullYear() + '').substr(4 - RegExp.$1.length)
+    )
   }
   for (const k in o) {
     if (new RegExp('(' + k + ')').test(fmt)) {
-      fmt = fmt.replace(RegExp.$1, (RegExp.$1.length === 1) ? (o[k]) : (('00' + o[k]).substr(('' + o[k]).length)))
+      fmt = fmt.replace(
+        RegExp.$1,
+        RegExp.$1.length === 1 ? o[k] : ('00' + o[k]).substr(('' + o[k]).length)
+      )
     }
   }
   return fmt
@@ -212,19 +227,14 @@ export default {
       user_id: '',
       IDsearch: '',
       list: [],
-      orderstatus: [
-        { 0: '未出荷' },
-        { 1: '輸送中' },
-        { 2: '配達済み' },
-        { 3: 'キャンセル' }
-      ],
+      orderstatus: [],
       selected: '',
       address: [{}],
       orderList: [],
       user_name: '',
       user_phone: '',
       user_comment: '',
-      user_address: '',
+      dlv_address: '',
       price: '',
       item_name: '',
       statusname: '',
@@ -233,12 +243,9 @@ export default {
       editform: {
         status: ''
       },
-      userinfo: {
-        user_name: 'Alice',
-        user_phone: '000-111-888',
-        user_comment: '午前',
-        user_address: 'XXX'
-      },
+      userinfo: [
+        { user_name: '', user_phone: '', user_comment: '', dlv_address: '' }
+      ],
       form: {
         delivery: false,
         order_id: ''
@@ -254,7 +261,10 @@ export default {
       var reqlist = {
         mode: 'select',
         selectsql:
-          " select d.order_id, d.status, o.user_id from ns_dlv d left join ns_order o on d.order_id = o.order_id where d.last_flg = '1' and (o.delflg is null or o.delflg <> '1') "
+          ' select d.order_id, d.status, o.order_info_id, o.user_id, o.dlv_address from ns_dlv d  ' +
+          ' left join ns_order o on d.order_id = o.order_id ' +
+          ' left join ns_user_list u on u.user_id = o.user_id ' +
+          " where d.last_flg = '1' and (o.delflg is null or o.delflg <> '1') "
       }
       await this.axios
         .post(this.$baseUrl + '/web.do', reqlist)
@@ -263,19 +273,6 @@ export default {
           that.list = response.data.data
           // this.list = this.goodslist;
           console.log(' list: ', that.list)
-          that.setlist()
-          that.statusname
-          for (var i = 0; i < that.list.length; i++) {
-            if (that.status === 0) {
-              that.statusname = '未発送'
-            } else if (that.status === 1) {
-              that.statusname = '輸送中'
-            } else if (that.status === 2) {
-              that.statusname = '到着'
-            } else {
-              that.statusname = 'キャンセル'
-            }
-          }
         })
         .catch((response) => {
           console.log(response)
@@ -283,34 +280,108 @@ export default {
     },
     async getOrder(order_id) {
       var that = this
+      console.log('order_id:', order_id)
+
       var reqlist = {
         mode: 'select',
         selectsql:
-          " select d.status, o.price, t.item_name, t.item_num, t.item_price from ns_dlv d left join ns_order o on d.order_id = o.order_id left join ns_order_detail t on d.order_id = t.order_id where d.order_id = '" +
+          ' select d.status, o.price, t.item_name, t.item_num, t.item_price,o.dlv_address from ns_dlv d left join ns_order o on d.order_id = o.order_id left join ns_order_detail t on d.order_id = t.order_id where d.order_id = ' +
           order_id +
-          "' and d.last_flg = 1 and (o.delflg is null or o.delflg <> '1') "
+          " and d.last_flg = 1 and (o.delflg is null or o.delflg <> '1') "
       }
       await this.axios
         .post(this.$baseUrl + '/web.do', reqlist)
         .then((response) => {
           that.orderList = response.data.data
+          console.log(' 商品列表： ', that.orderList)
           for (var i = 0; i <= that.orderList.length; i++) {
             that.orderList[i].item_price =
               that.orderList[i].item_price * that.orderList[i].item_num
           }
-          console.log(' list: ', that.list)
-          console.log(' 商品列表： ', that.orderList)
-          that.setlist()
+        })
+        .catch((response) => {
+          console.log(response)
+        })
+      var reqlist2 = {
+        mode: 'select',
+        selectsql:
+          ' select d.status, o.dlv_address, o.arrival_time, ad.number, o.user_id from ns_dlv d left join ns_order o  on d.order_id = o.order_id left join ns_user_address ad on ad.address =o.dlv_address where d.order_id = ' +
+          order_id +
+          " and d.last_flg = 1 and (o.delflg is null or o.delflg <> '1') "
+      }
+      await this.axios
+        .post(this.$baseUrl + '/web.do', reqlist2)
+        .then((response) => {
+          that.userinfo = response.data.data
+          console.log(' userinfo： ', that.userinfo)
+          console.log('收货地址：', that.userinfo[0].dlv_address)
         })
         .catch((response) => {
           console.log(response)
         })
     },
     setlist() {
+      this.reFresh()
       console.log('All Order')
     },
-    orderSearch() {
+    statusName(status) {
+      if (status === '0') {
+        return '未出荷'
+      } else if (status === '1') {
+        return '出荷中'
+      } else if (status === '2') {
+        return '配達済み'
+      } else {
+        return 'キャンセル'
+      }
+    },
+    async orderSearch() {
       console.log('search button')
+      var that = this
+      var searchid = document.getElementById('IDsearch').value
+      console.log('select:', document.getElementById('selected').value)
+      console.log('ID:', document.getElementById('IDsearch').value)
+      if (searchid === '') {
+        console.log('id空，状态检索')
+        var reqlist = {
+          mode: 'select',
+          selectsql:
+            " select d.order_id, d.status, o.order_info_id, o.user_id, o.dlv_address from ns_dlv d left join ns_order o on d.order_id = o.order_id left join ns_user_list u on u.user_id = o.user_id where d.last_flg = '1' and (o.delflg is null or o.delflg <> '1') and d.status = " +
+            document.getElementById('selected').value
+        }
+        await this.axios
+          .post(this.$baseUrl + '/web.do', reqlist)
+          .then((response) => {
+            console.log(' 初始表： ', response.data)
+            that.list = response.data.data
+            // this.list = this.goodslist;
+            console.log(' list: ', that.list)
+            console.log(' list.status: ', that.list[1].status)
+          })
+          .catch((response) => {
+            console.log(response)
+          })
+      } else {
+        console.log('ID有，ID检索')
+        var reqlist2 = {
+          mode: 'select',
+          selectsql:
+            " select d.order_id, d.status, o.order_info_id, o.user_id, o.dlv_address from ns_dlv d left join ns_order o on d.order_id = o.order_id left join ns_user_list u on u.user_id = o.user_id where d.last_flg = '1' and (o.delflg is null or o.delflg <> '1') and o.order_info_id = " +
+            document.getElementById('IDsearch').value
+        }
+        await this.axios
+          .post(this.$baseUrl + '/web.do', reqlist2)
+          .then((response) => {
+            console.log(' 初始表： ', response.data)
+            that.list = response.data.data
+            // this.list = this.goodslist;
+            console.log(' list: ', that.list)
+            console.log(' list.status: ', that.list[1].status)
+          })
+          .catch((response) => {
+            console.log(response)
+          })
+      }
     },
     showList() {
       this.orderVisible = true
@@ -338,12 +409,29 @@ export default {
       console.log('id:', order_id)
       this.form.order_id = order_id
       var that = this
+      var reqlist2 = {
+        mode: 'select',
+        selectsql:
+          ' select d.status, o.dlv_address, o.arrival_time, ad.number, o.user_id from ns_dlv d left join ns_order o  on d.order_id = o.order_id left join ns_user_address ad on ad.address =o.dlv_address where d.order_id = ' +
+          order_id +
+          " and d.last_flg = 1 and (o.delflg is null or o.delflg <> '1') "
+      }
+      await this.axios
+        .post(this.$baseUrl + '/web.do', reqlist2)
+        .then((response) => {
+          that.userinfo = response.data.data
+          console.log(' userinfo： ', that.userinfo)
+          console.log('收货地址：', that.userinfo[0].dlv_address)
+        })
+        .catch((response) => {
+          console.log(response)
+        })
       var reqlist = {
         mode: 'select',
         selectsql:
-          " select d.status, o.price, t.item_name, t.item_num, t.item_price from ns_dlv d left join ns_order o on d.order_id = o.order_id left join ns_order_detail t on d.order_id = t.order_id where d.order_id = '" +
+          ' select d.status, o.price, t.item_name, t.item_num, t.item_price,o.dlv_address from ns_dlv d left join ns_order o on d.order_id = o.order_id left join ns_order_detail t on d.order_id = t.order_id where d.order_id = ' +
           order_id +
-          "' and d.last_flg = 1 and (o.delflg is null or o.delflg <> '1') "
+          " and d.last_flg = 1 and (o.delflg is null or o.delflg <> '1') "
       }
       await this.axios
         .post(this.$baseUrl + '/web.do', reqlist)
