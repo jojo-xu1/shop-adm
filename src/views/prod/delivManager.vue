@@ -122,7 +122,7 @@
       </el-form>
       <el-table
         :data="orderList"
-        show-summary
+
         sum-text="合計"
         style="width: 100%"
       >
@@ -130,6 +130,11 @@
         <el-table-column prop="item_num" label="数量" width="180" />
         <el-table-column prop="item_price" label="合計" />
       </el-table>
+      <el-form ref="form" :model="form" label-width="100px">
+        <el-form-item label="合計：">
+          <span>{{ price }}円</span>
+        </el-form-item>
+      </el-form>
     </el-dialog>
 
     <el-dialog
@@ -172,14 +177,17 @@
       </el-form>
       <el-table
         :data="orderList"
-        show-summary
-        sum-text="合計"
         style="width: 100%"
       >
         <el-table-column prop="item_name" label="商品名" width="180" />
         <el-table-column prop="item_num" label="数量" width="180" />
         <el-table-column prop="item_price" label="合計" />
       </el-table>
+      <el-form ref="form" :model="form" label-width="100px">
+        <el-form-item label="合計：">
+          <span>{{ price }}円</span>
+        </el-form-item>
+      </el-form>
     </el-dialog>
   </div>
 </template>
@@ -240,6 +248,7 @@ export default {
       item_name: '',
       statusname: '',
       item_num: '',
+
       item_price: '',
       editform: {
         status: ''
@@ -250,6 +259,9 @@ export default {
       form: {
         delivery: false,
         order_id: ''
+      },
+      form1: {
+        price: ''
       }
     }
   },
@@ -294,6 +306,8 @@ export default {
         .post(this.$baseUrl + '/web.do', reqlist)
         .then((response) => {
           that.orderList = response.data.data
+          this.price = response.data.data[0].price
+          console.log('税后价格：', this.price)
           console.log(' 商品列表： ', that.orderList)
           for (var i = 0; i <= that.orderList.length; i++) {
             that.orderList[i].item_price =
@@ -345,8 +359,9 @@ export default {
       console.log('ID:', document.getElementById('IDsearch').value)
       if (searchid === '') {
         console.log('id空，状态检索')
-        if (document.getElementById('selected').value === 4) {
+        if (document.getElementById('selected').value === '4') {
           this.reFresh()
+          console.log('选中所有查询')
         } else {
           var reqlist = {
             mode: 'select',
@@ -439,7 +454,7 @@ export default {
       var reqlist2 = {
         mode: 'select',
         selectsql:
-          ' select d.status, o.dlv_address, o.arrival_time, ad.number, o.user_id from ns_dlv d left join ns_order o  on d.order_id = o.order_id left join ns_user_address ad on ad.address =o.dlv_address where d.order_id = ' +
+          ' select d.status, o.dlv_address, o.price, o.arrival_time, ad.number, o.user_id from ns_dlv d left join ns_order o  on d.order_id = o.order_id left join ns_user_address ad on ad.address =o.dlv_address where d.order_id = ' +
           order_id +
           " and d.last_flg = 1 and (o.delflg is null or o.delflg <> '1') "
       }
@@ -447,6 +462,8 @@ export default {
         .post(this.$baseUrl + '/web.do', reqlist2)
         .then((response) => {
           that.userinfo = response.data.data
+          this.price = response.data.data[0].price
+          console.log('税后价格：', this.price)
           console.log(' userinfo： ', that.userinfo)
           console.log('收货地址：', that.userinfo[0].dlv_address)
         })
@@ -489,6 +506,7 @@ export default {
       // console.log("SubmitTest:status=", this.form.status);
       // 修改旧状态flg
       var oldStatus = {}
+      var that = this
       oldStatus.last_flg = 0
       var req2 = {
         mode: 'update',
@@ -520,6 +538,7 @@ export default {
             .post(this.$baseUrl + '/web.do', dataNewstatus)
             .then(function(resp) {
               console.log('resp信息：', resp)
+              that.reFresh()
               // var data = {};
               // data.status = status;
             })
@@ -530,7 +549,6 @@ export default {
         })
       console.log('旧状态变更ok')
 
-      this.reFresh()
       this.editVisible = false
     }
   }
