@@ -32,6 +32,7 @@
                 "
               >
                 <!--<option value="0">子カテゴリ有無</option>-->
+                <option value="4">すべて</option>
                 <option value="0">未出荷</option>
                 <option value="1">出荷済み</option>
                 <option value="2">配達済み</option>
@@ -121,7 +122,7 @@
       </el-form>
       <el-table
         :data="orderList"
-        show-summary
+
         sum-text="合計"
         style="width: 100%"
       >
@@ -129,6 +130,11 @@
         <el-table-column prop="item_num" label="数量" width="180" />
         <el-table-column prop="item_price" label="合計" />
       </el-table>
+      <el-form ref="form" :model="form" label-width="100px">
+        <el-form-item label="合計：">
+          <span>{{ price }}円</span>
+        </el-form-item>
+      </el-form>
     </el-dialog>
 
     <el-dialog
@@ -160,7 +166,7 @@
         <el-form-item label="配達状態">
           <el-select v-model="editform.status">
             <el-option label="未出荷" value="0" />
-            <el-option label="出荷中" value="1" />
+            <el-option label="出荷済み" value="1" />
             <el-option label="配達済み" value="2" />
             <el-option label="キャンセル" value="3" />
           </el-select>
@@ -171,14 +177,17 @@
       </el-form>
       <el-table
         :data="orderList"
-        show-summary
-        sum-text="合計"
         style="width: 100%"
       >
         <el-table-column prop="item_name" label="商品名" width="180" />
         <el-table-column prop="item_num" label="数量" width="180" />
         <el-table-column prop="item_price" label="合計" />
       </el-table>
+      <el-form ref="form" :model="form" label-width="100px">
+        <el-form-item label="合計：">
+          <span>{{ price }}円</span>
+        </el-form-item>
+      </el-form>
     </el-dialog>
   </div>
 </template>
@@ -239,6 +248,7 @@ export default {
       item_name: '',
       statusname: '',
       item_num: '',
+
       item_price: '',
       editform: {
         status: ''
@@ -249,6 +259,9 @@ export default {
       form: {
         delivery: false,
         order_id: ''
+      },
+      form1: {
+        price: ''
       }
     }
   },
@@ -293,6 +306,8 @@ export default {
         .post(this.$baseUrl + '/web.do', reqlist)
         .then((response) => {
           that.orderList = response.data.data
+          this.price = response.data.data[0].price
+          console.log('税后价格：', this.price)
           console.log(' 商品列表： ', that.orderList)
           for (var i = 0; i <= that.orderList.length; i++) {
             that.orderList[i].item_price =
@@ -323,12 +338,13 @@ export default {
     setlist() {
       this.reFresh()
       console.log('All Order')
+      document.getElementById('IDsearch').value = ''
     },
     statusName(status) {
       if (status === '0') {
         return '未出荷'
       } else if (status === '1') {
-        return '出荷中'
+        return '出荷済み'
       } else if (status === '2') {
         return '配達済み'
       } else {
@@ -343,44 +359,70 @@ export default {
       console.log('ID:', document.getElementById('IDsearch').value)
       if (searchid === '') {
         console.log('id空，状态检索')
-        var reqlist = {
-          mode: 'select',
-          selectsql:
+        if (document.getElementById('selected').value === '4') {
+          this.reFresh()
+          console.log('选中所有查询')
+        } else {
+          var reqlist = {
+            mode: 'select',
+            selectsql:
             " select d.order_id, d.status, o.order_info_id, o.user_id, o.dlv_address from ns_dlv d left join ns_order o on d.order_id = o.order_id left join ns_user_list u on u.user_id = o.user_id where d.last_flg = '1' and (o.delflg is null or o.delflg <> '1') and d.status = " +
             document.getElementById('selected').value
+          }
+          await this.axios
+            .post(this.$baseUrl + '/web.do', reqlist)
+            .then((response) => {
+              console.log(' 初始表： ', response.data)
+              that.list = response.data.data
+              // this.list = this.goodslist;
+              console.log(' list: ', that.list)
+              console.log(' list.status: ', that.list[1].status)
+            })
+            .catch((response) => {
+              console.log(response)
+            })
         }
-        await this.axios
-          .post(this.$baseUrl + '/web.do', reqlist)
-          .then((response) => {
-            console.log(' 初始表： ', response.data)
-            that.list = response.data.data
-            // this.list = this.goodslist;
-            console.log(' list: ', that.list)
-            console.log(' list.status: ', that.list[1].status)
-          })
-          .catch((response) => {
-            console.log(response)
-          })
       } else {
         console.log('ID有，ID检索')
-        var reqlist2 = {
-          mode: 'select',
-          selectsql:
+        if (document.getElementById('selected').value === 4) {
+          var reqlist2 = {
+            mode: 'select',
+            selectsql:
             " select d.order_id, d.status, o.order_info_id, o.user_id, o.dlv_address from ns_dlv d left join ns_order o on d.order_id = o.order_id left join ns_user_list u on u.user_id = o.user_id where d.last_flg = '1' and (o.delflg is null or o.delflg <> '1') and o.order_info_id = " +
             document.getElementById('IDsearch').value
+          }
+          await this.axios
+            .post(this.$baseUrl + '/web.do', reqlist2)
+            .then((response) => {
+              console.log(' 初始表： ', response.data)
+              that.list = response.data.data
+              // this.list = this.goodslist;
+              console.log(' list: ', that.list)
+              console.log(' list.status: ', that.list[1].status)
+            })
+            .catch((response) => {
+              console.log(response)
+            })
+        } else {
+          var reqlist3 = {
+            mode: 'select',
+            selectsql:
+            " select d.order_id, d.status, o.order_info_id, o.user_id, o.dlv_address from ns_dlv d left join ns_order o on d.order_id = o.order_id left join ns_user_list u on u.user_id = o.user_id where d.last_flg = '1' and (o.delflg is null or o.delflg <> '1') and o.order_info_id = " +
+            document.getElementById('IDsearch').value + ' and d.status = ' + document.getElementById('selected').value
+          }
+          await this.axios
+            .post(this.$baseUrl + '/web.do', reqlist3)
+            .then((response) => {
+              console.log(' 初始表： ', response.data)
+              that.list = response.data.data
+              // this.list = this.goodslist;
+              console.log(' list: ', that.list)
+              console.log(' list.status: ', that.list[1].status)
+            })
+            .catch((response) => {
+              console.log(response)
+            })
         }
-        await this.axios
-          .post(this.$baseUrl + '/web.do', reqlist2)
-          .then((response) => {
-            console.log(' 初始表： ', response.data)
-            that.list = response.data.data
-            // this.list = this.goodslist;
-            console.log(' list: ', that.list)
-            console.log(' list.status: ', that.list[1].status)
-          })
-          .catch((response) => {
-            console.log(response)
-          })
       }
     },
     showList() {
@@ -412,7 +454,7 @@ export default {
       var reqlist2 = {
         mode: 'select',
         selectsql:
-          ' select d.status, o.dlv_address, o.arrival_time, ad.number, o.user_id from ns_dlv d left join ns_order o  on d.order_id = o.order_id left join ns_user_address ad on ad.address =o.dlv_address where d.order_id = ' +
+          ' select d.status, o.dlv_address, o.price, o.arrival_time, ad.number, o.user_id from ns_dlv d left join ns_order o  on d.order_id = o.order_id left join ns_user_address ad on ad.address =o.dlv_address where d.order_id = ' +
           order_id +
           " and d.last_flg = 1 and (o.delflg is null or o.delflg <> '1') "
       }
@@ -420,6 +462,8 @@ export default {
         .post(this.$baseUrl + '/web.do', reqlist2)
         .then((response) => {
           that.userinfo = response.data.data
+          this.price = response.data.data[0].price
+          console.log('税后价格：', this.price)
           console.log(' userinfo： ', that.userinfo)
           console.log('收货地址：', that.userinfo[0].dlv_address)
         })
@@ -462,6 +506,7 @@ export default {
       // console.log("SubmitTest:status=", this.form.status);
       // 修改旧状态flg
       var oldStatus = {}
+      var that = this
       oldStatus.last_flg = 0
       var req2 = {
         mode: 'update',
@@ -493,6 +538,7 @@ export default {
             .post(this.$baseUrl + '/web.do', dataNewstatus)
             .then(function(resp) {
               console.log('resp信息：', resp)
+              that.reFresh()
               // var data = {};
               // data.status = status;
             })
@@ -503,7 +549,6 @@ export default {
         })
       console.log('旧状态变更ok')
 
-      this.reFresh()
       this.editVisible = false
     }
   }
