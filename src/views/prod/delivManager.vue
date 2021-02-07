@@ -384,7 +384,8 @@ export default {
         }
       } else {
         console.log('ID有，ID检索')
-        if (document.getElementById('selected').value === 4) {
+        if (document.getElementById('selected').value === '4') {
+          console.log('ID有，选择すべて')
           var reqlist2 = {
             mode: 'select',
             selectsql:
