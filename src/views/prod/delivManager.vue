@@ -32,6 +32,7 @@
                 "
               >
                 <!--<option value="0">子カテゴリ有無</option>-->
+                <option value="4">すべて</option>
                 <option value="0">未出荷</option>
                 <option value="1">出荷済み</option>
                 <option value="2">配達済み</option>
@@ -160,7 +161,7 @@
         <el-form-item label="配達状態">
           <el-select v-model="editform.status">
             <el-option label="未出荷" value="0" />
-            <el-option label="出荷中" value="1" />
+            <el-option label="出荷済み" value="1" />
             <el-option label="配達済み" value="2" />
             <el-option label="キャンセル" value="3" />
           </el-select>
@@ -323,12 +324,13 @@ export default {
     setlist() {
       this.reFresh()
       console.log('All Order')
+      document.getElementById('IDsearch').value = ''
     },
     statusName(status) {
       if (status === '0') {
         return '未出荷'
       } else if (status === '1') {
-        return '出荷中'
+        return '出荷済み'
       } else if (status === '2') {
         return '配達済み'
       } else {
@@ -343,44 +345,69 @@ export default {
       console.log('ID:', document.getElementById('IDsearch').value)
       if (searchid === '') {
         console.log('id空，状态检索')
-        var reqlist = {
-          mode: 'select',
-          selectsql:
+        if (document.getElementById('selected').value === 4) {
+          this.reFresh()
+        } else {
+          var reqlist = {
+            mode: 'select',
+            selectsql:
             " select d.order_id, d.status, o.order_info_id, o.user_id, o.dlv_address from ns_dlv d left join ns_order o on d.order_id = o.order_id left join ns_user_list u on u.user_id = o.user_id where d.last_flg = '1' and (o.delflg is null or o.delflg <> '1') and d.status = " +
             document.getElementById('selected').value
+          }
+          await this.axios
+            .post(this.$baseUrl + '/web.do', reqlist)
+            .then((response) => {
+              console.log(' 初始表： ', response.data)
+              that.list = response.data.data
+              // this.list = this.goodslist;
+              console.log(' list: ', that.list)
+              console.log(' list.status: ', that.list[1].status)
+            })
+            .catch((response) => {
+              console.log(response)
+            })
         }
-        await this.axios
-          .post(this.$baseUrl + '/web.do', reqlist)
-          .then((response) => {
-            console.log(' 初始表： ', response.data)
-            that.list = response.data.data
-            // this.list = this.goodslist;
-            console.log(' list: ', that.list)
-            console.log(' list.status: ', that.list[1].status)
-          })
-          .catch((response) => {
-            console.log(response)
-          })
       } else {
         console.log('ID有，ID检索')
-        var reqlist2 = {
-          mode: 'select',
-          selectsql:
+        if (document.getElementById('selected').value === 4) {
+          var reqlist2 = {
+            mode: 'select',
+            selectsql:
             " select d.order_id, d.status, o.order_info_id, o.user_id, o.dlv_address from ns_dlv d left join ns_order o on d.order_id = o.order_id left join ns_user_list u on u.user_id = o.user_id where d.last_flg = '1' and (o.delflg is null or o.delflg <> '1') and o.order_info_id = " +
             document.getElementById('IDsearch').value
+          }
+          await this.axios
+            .post(this.$baseUrl + '/web.do', reqlist2)
+            .then((response) => {
+              console.log(' 初始表： ', response.data)
+              that.list = response.data.data
+              // this.list = this.goodslist;
+              console.log(' list: ', that.list)
+              console.log(' list.status: ', that.list[1].status)
+            })
+            .catch((response) => {
+              console.log(response)
+            })
+        } else {
+          var reqlist3 = {
+            mode: 'select',
+            selectsql:
+            " select d.order_id, d.status, o.order_info_id, o.user_id, o.dlv_address from ns_dlv d left join ns_order o on d.order_id = o.order_id left join ns_user_list u on u.user_id = o.user_id where d.last_flg = '1' and (o.delflg is null or o.delflg <> '1') and o.order_info_id = " +
+            document.getElementById('IDsearch').value + ' and d.status = ' + document.getElementById('selected').value
+          }
+          await this.axios
+            .post(this.$baseUrl + '/web.do', reqlist3)
+            .then((response) => {
+              console.log(' 初始表： ', response.data)
+              that.list = response.data.data
+              // this.list = this.goodslist;
+              console.log(' list: ', that.list)
+              console.log(' list.status: ', that.list[1].status)
+            })
+            .catch((response) => {
+              console.log(response)
+            })
         }
-        await this.axios
-          .post(this.$baseUrl + '/web.do', reqlist2)
-          .then((response) => {
-            console.log(' 初始表： ', response.data)
-            that.list = response.data.data
-            // this.list = this.goodslist;
-            console.log(' list: ', that.list)
-            console.log(' list.status: ', that.list[1].status)
-          })
-          .catch((response) => {
-            console.log(response)
-          })
       }
     },
     showList() {
